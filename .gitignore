@@ -1,0 +1,45 @@
+# Środowisko wirtualne
+env/
+venv/
+
+# Pliki konfiguracyjne PyCharm
+.idea/
+
+# Pliki cache Pythona
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pliki logów
+*.log
+logs/
+debug.log
+
+# Pliki bazy danych (SQLite)
+db.sqlite3
+*.sqlite3
+
+# Pliki migracji (opcjonalnie)
+*/migrations/*.pyc
+*/migrations/__pycache__/
+*/migrations/*000*.py  # Można usunąć po zatwierdzeniu migracji w repozytorium
+
+# Sekrety i pliki konfiguracyjne
+.env
+*.env
+config/settings_local.py  # Jeśli używasz lokalnych ustawień poza repo
+
+# Pliki generowane przez Django
+staticfiles/
+media/
+
+# Node.js i frontend (jeśli używane)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Pliki kompilacji i edytorów
+.DS_Store
+Thumbs.db
+.vscode/
