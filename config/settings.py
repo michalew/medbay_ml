@@ -37,6 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cmms.apps.CmmsConfig',
+    'costs.apps.CostsConfig',
+    'crm.apps.CrmConfig',
+    'dane.apps.DaneConfig',
+    'reminders.apps.RemindersConfig',
 ]
 
 MIDDLEWARE = [
