@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,13 +36,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'cmms.apps.CmmsConfig',
     'costs.apps.CostsConfig',
     'crm.apps.CrmConfig',
     'dane.apps.DaneConfig',
     'reminders.apps.RemindersConfig',
-    'utils.apps.UtilsConfig'
+    'utils.apps.UtilsConfig',
+    'guardian',
+    'django_comments',
 ]
+
+SITE_ID = 1
+DOMAIN_NAME = "localhost:8000"
+DEFAULT_FROM_EMAIL = 'automat@medbay.pl'
+AUTH_USER_MODEL = 'crm.UserProfile'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,6 +79,11 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # this is default
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -104,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pl'
 
 TIME_ZONE = 'UTC'
 
@@ -117,6 +131,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_ROOT = os.path.join(BASE_DIR, "site_media/u")
+SENDFILE_BACKEND = 'sendfile.backends.development'
+SENDFILE_ROOT = os.path.join(BASE_DIR, 'protected_site_media')
+SENDFILE_URL = '/site_media/protected'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
