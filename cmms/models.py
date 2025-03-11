@@ -1,22 +1,22 @@
-from .tasks import mileage_remind
 from calendar import HTMLCalendar, month_name
-from itertools import groupby
-from config import settings
 from datetime import datetime, date
+from itertools import groupby
+
 from dateutil.relativedelta import relativedelta
+from django.core.files.storage import FileSystemStorage
+from django.db import models
+from django.db.models import Q
+from django.forms import ModelForm
 from django.utils.html import conditional_escape as esc
 from django.utils.safestring import mark_safe
-from django.db.models import Q
-from django.core.files.storage import FileSystemStorage
-from django.forms import ModelForm
-from .managers import DocumentManager
-from crm.models import Invoice, Contractor, Location, CostCentre, Hospital, UserProfile
 
-from django.db import models
+from config import settings
+from crm.models import Invoice, Contractor, Location, CostCentre, Hospital, UserProfile
 from utils.tasks import setup_permissions
+from .managers import DocumentManager
+from .tasks import mileage_remind
 
 sendfile_storage = FileSystemStorage(location=settings.SENDFILE_ROOT)
-
 
 # Create your models here.
 GROUP_CHOICES = (
@@ -264,7 +264,7 @@ class Device(models.Model):
         related_name='responsible', verbose_name=u'Osoba odpowiedzialna', on_delete=models.PROTECT)
     technical_supervisor = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True,
-        related_name='supervisor', verbose_name=u'Nadzór techniczny',on_delete=models.PROTECT)
+        related_name='supervisor', verbose_name=u'Nadzór techniczny', on_delete=models.PROTECT)
     status = models.IntegerField(
         choices=DEVICE_STATUS_CHOICES, default=0, verbose_name=u'Status')
     # TODO czy to nie powinien byc userprofile ?? i czy to ma tu byc?? ( jest w zleceniu
@@ -503,7 +503,7 @@ class Device(models.Model):
 class DeviceGallery(models.Model):
     """Model to store images of gallery devices."""
 
-    device = models.ForeignKey(Device, verbose_name=u"Urządzenie",on_delete=models.PROTECT)
+    device = models.ForeignKey(Device, verbose_name=u"Urządzenie", on_delete=models.PROTECT)
     image = models.ImageField(u"Zdjęcie", upload_to="devices/gallery")
     description = models.TextField(u"Opis", blank=True)
     is_visible = models.BooleanField(u"Czy widoczne", default=True)
@@ -511,16 +511,16 @@ class DeviceGallery(models.Model):
     added_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=u"Użytkownik dodający",
         blank=True, null=True, on_delete=models.PROTECT)
-    history = models.CharField(max_length=255) # DiffedHistoricalRecords() TODO history
+    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
 
     def __str__(self):
         return u"Zdjęcie: %s" % self.image
 
 
 class DevicePassport(models.Model):
-    history = models.CharField(max_length=255) # DiffedHistoricalRecords() TODO history
+    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
 
-    device = models.ForeignKey(Device, verbose_name=u"Urządzenie",on_delete=models.PROTECT)
+    device = models.ForeignKey(Device, verbose_name=u"Urządzenie", on_delete=models.PROTECT)
     content = models.TextField(u"Treść", blank=True)
     added_date = models.DateField(u"Data wpisu", default=date.today)
     added_user = models.ForeignKey(
@@ -542,7 +542,7 @@ class DevicePassport(models.Model):
 
 
 class Kit(models.Model):
-    device = models.ForeignKey(Device, verbose_name=u'Urządzenie',on_delete=models.PROTECT)
+    device = models.ForeignKey(Device, verbose_name=u'Urządzenie', on_delete=models.PROTECT)
     name = models.CharField(max_length=255, verbose_name=u'Nazwa')
     make = models.CharField(max_length=255, blank=True,
                             null=True, verbose_name=u'Producent')
@@ -601,9 +601,9 @@ class Mileage(models.Model):
     date = models.DateField(verbose_name=u'Data utworzenia', auto_now=True)
     person_creating = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True,
-        verbose_name=u'Utworzony przez',on_delete=models.PROTECT)
+        verbose_name=u'Utworzony przez', on_delete=models.PROTECT)
 
-    history = models.CharField(max_length=255) #DiffedHistoricalRecords() TODO history
+    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
 
     ignored_keys = ['remarks_ui', ]
 
@@ -688,7 +688,7 @@ class Ticket(models.Model):
     status = models.IntegerField(
         choices=TICKET_STATUS_CHOICES, default=1, verbose_name=u'Status')
     person_creating = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, verbose_name=u'Zgłaszający',on_delete=models.PROTECT)
+        settings.AUTH_USER_MODEL, null=True, blank=True, verbose_name=u'Zgłaszający', on_delete=models.PROTECT)
     person_closing = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
                                        blank=True,
                                        verbose_name=u'Osoba zamykająca',
@@ -709,10 +709,11 @@ class Ticket(models.Model):
     person_completing = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
                                           blank=True,
                                           related_name='completing',
-                                          verbose_name=u'Odbiorca zlecenia',on_delete=models.PROTECT)
+                                          verbose_name=u'Odbiorca zlecenia', on_delete=models.PROTECT)
     contractor = models.ForeignKey(Contractor, null=True, blank=True,
                                    verbose_name=u'Firma serwisująca',
-                                   related_name="contractor_set", on_delete=models.PROTECT)  # TODO czy to nie powinien byc userprofile ?? I CZY TO W OGOLE POWINNO TU BYC??
+                                   related_name="contractor_set",
+                                   on_delete=models.PROTECT)  # TODO czy to nie powinien byc userprofile ?? I CZY TO W OGOLE POWINNO TU BYC??
 
     contractor_execute = models.ForeignKey(Contractor, null=True, blank=True,
                                            verbose_name=u'Firma wykonująca',
@@ -881,7 +882,8 @@ class Service(models.Model):
         verbose_name=u'Data zakończenia', blank=True, null=True, editable=True)
     contractor = models.ForeignKey(Contractor, null=True, blank=True,
                                    verbose_name=u'Firma serwisująca',
-                                   related_name="contractors_set", on_delete=models.PROTECT)  # TODO czy to nie powinien byc userprofile ??
+                                   related_name="contractors_set",
+                                   on_delete=models.PROTECT)  # TODO czy to nie powinien byc userprofile ??
 
     contractor_execute = models.ForeignKey(Contractor, null=True, blank=True,
                                            verbose_name=u'Firma wykonująca',
@@ -1123,8 +1125,8 @@ class InspectionDevice(models.Model):
 
     def __unicode__(self):
         return u"%s (ID: %s | producent: %s | model: %s | nr inwentarzowy: %s | lokalizacja: %s)" % (
-        self.device.name, self.device.pk, self.device.make, self.device.model, self.device.inventory_number,
-        self.device.location)
+            self.device.name, self.device.pk, self.device.make, self.device.model, self.device.inventory_number,
+            self.device.location)
 
 
 class InspectionItem(models.Model):
@@ -1165,4 +1167,4 @@ class InspectionDocument(models.Model):
 
     def __str__(self):
         return u"%s (ID: %s | rodzaj: %s | data dodania: %s)" % (
-        self.document.name, self.document.pk, self.document.sort, self.document.timestamp.strftime("%d-%m-%Y"))
+            self.document.name, self.document.pk, self.document.sort, self.document.timestamp.strftime("%d-%m-%Y"))

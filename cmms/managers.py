@@ -1,15 +1,15 @@
 from django.db.models import Manager, QuerySet
-from guardian.shortcuts import get_objects_for_user
 from django.db.models import Q
+from guardian.shortcuts import get_objects_for_user
+
 
 
 class DocumentQuerySet(QuerySet):
     def for_user(self, user):
         from .models import Ticket  # avoid circular import
-
         # check permissions
         if not user.has_perm("cmms.view_document"):
-            return self.filter(pk=False)
+            return self.none()
 
         # get list of devices/tickets visible for this user
         devices = get_objects_for_user(
