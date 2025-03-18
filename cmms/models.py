@@ -12,6 +12,7 @@ from django.utils.safestring import mark_safe
 
 from config import settings
 from crm.models import Invoice, Contractor, Location, CostCentre, Hospital, UserProfile
+from utils.models import DiffedHistoricalRecords
 from utils.tasks import setup_permissions
 from .managers import DocumentManager
 from .tasks import mileage_remind
@@ -182,7 +183,7 @@ class Calendar(HTMLCalendar):
 
 
 class Make(models.Model):
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords()
+    history = DiffedHistoricalRecords()
     name = models.CharField(max_length=255, verbose_name=u'Nazwa')
 
     class Meta:
@@ -195,7 +196,7 @@ class Make(models.Model):
 
 
 class Genre(models.Model):
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     symbol = models.CharField(max_length=32, verbose_name=u'Symbol')
     name = models.CharField(max_length=1024, verbose_name=u'Nazwa')
     description = models.TextField(
@@ -211,7 +212,7 @@ class Genre(models.Model):
 
 
 class Device(models.Model):
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     document_pks = models.TextField(
         max_length=4096, blank=True, null=True, verbose_name=u'Dokumenty')
     # valid_lookups = ('group__id')
@@ -511,14 +512,14 @@ class DeviceGallery(models.Model):
     added_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=u"Użytkownik dodający",
         blank=True, null=True, on_delete=models.PROTECT)
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
 
     def __str__(self):
         return u"Zdjęcie: %s" % self.image
 
 
 class DevicePassport(models.Model):
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
 
     device = models.ForeignKey(Device, verbose_name=u"Urządzenie", on_delete=models.PROTECT)
     content = models.TextField(u"Treść", blank=True)
@@ -603,7 +604,7 @@ class Mileage(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True,
         verbose_name=u'Utworzony przez', on_delete=models.PROTECT)
 
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
 
     ignored_keys = ['remarks_ui', ]
 
@@ -617,7 +618,7 @@ class Mileage(models.Model):
             ("reset_mileage", u"Może resetować licznik"),
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return u"%s: %s, %s" % (self.device.name, self.name, self.state)
 
     def get_device(self):
@@ -668,7 +669,7 @@ class Mileage(models.Model):
 
 
 class Ticket(models.Model):
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     device_pks = models.TextField(
         max_length=4096, blank=True, null=True, verbose_name=u'Urządzenia')
     document_pks = models.TextField(
@@ -772,7 +773,7 @@ class Ticket(models.Model):
     def get_status_name(self):
         return "%s" % dict(TICKET_STATUS_CHOICES)[self.status]
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.get_sort_name(), self.get_device_name())
 
     def get_devices(self):
@@ -852,7 +853,7 @@ class TicketForm(ModelForm):
 
 
 class Service(models.Model):
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     ticket_pks = models.TextField(
         max_length=4096, blank=True, null=True, verbose_name=u'Zgłoszenia')
     document_pks = models.TextField(
@@ -1014,7 +1015,7 @@ class Document(models.Model):
                                       verbose_name=u'Osoba dodająca dokument', on_delete=models.PROTECT)
     access = models.IntegerField(
         choices=ACCESS_CHOICES, verbose_name=u'Dostęp', default=1)
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
 
     class Meta:
         verbose_name = u'Dokument'
@@ -1085,9 +1086,9 @@ class Inspection(models.Model):
     added_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=u"Autor przeglądu", blank=True,
         null=True, on_delete=models.PROTECT)
-    history = models.CharField(max_length=255)  # DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:

@@ -2,9 +2,9 @@ from django.db import models
 import cmms
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-# from utils.models import DiffedHistoricalRecords
 
 import utils
+from utils.models import DiffedHistoricalRecords
 
 CHOICES_INVOICE_STATUS = (
     (1, 'Projekt'),
@@ -20,6 +20,27 @@ CHOICES_VAT = (
 )
 
 User = settings.AUTH_USER_MODEL
+
+
+class UserProfile(AbstractUser):
+    stamp = models.ImageField(upload_to='stamps/', null=True, blank=True, verbose_name=u'Pieczątka')
+    signature = models.ImageField(upload_to='signatures/', null=True, blank=True, verbose_name=u'Podpis')
+    phone = models.CharField("Telefon", max_length=100, blank=True, null=True)
+
+    class Meta:
+        ordering = ['username', 'first_name', ]
+
+    def __str__(self):
+        # check if name is provided
+        try:
+            name = self.get_full_name()
+        except:
+            name = self.username
+
+        if not name:
+            name = self.username
+
+        return name
 
 
 # Create your models here.
@@ -47,7 +68,7 @@ class Hospital(models.Model):
 
 
 class Location(models.Model):
-    history = models.CharField(max_length=255) #DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     staff_pks = models.TextField(max_length=4096, blank=True, null=True, verbose_name=u'Personel')
 
     name = models.CharField(max_length=255, verbose_name=u'Nazwa')
@@ -118,7 +139,7 @@ class CostCentre(models.Model):
 
 
 class Contractor(models.Model):
-    history = models.CharField(max_length=255) #DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     staff_pks = models.TextField(max_length=4096, blank=True, null=True, verbose_name=u'Pracownicy')
 
     name = models.CharField(max_length=255, verbose_name=u'Nazwa')
@@ -143,7 +164,7 @@ class Contractor(models.Model):
 
 
 class Invoice(models.Model):
-    history = models.CharField(max_length=255) #DiffedHistoricalRecords() TODO history
+    history = DiffedHistoricalRecords()
     service_pks = models.TextField(max_length=4096, blank=True, null=True, verbose_name=u'Zlecenia')
 
     id = models.AutoField(primary_key=True, auto_created=True)
@@ -183,7 +204,7 @@ class Invoice(models.Model):
         verbose_name = u'Faktura'
         verbose_name_plural = u'Faktury'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%f" % self.gross_value
 
     def save(self, *args, **kwargs):
@@ -207,7 +228,7 @@ class InvoiceItem(models.Model):
         verbose_name = u'Pozycja faktury'
         verbose_name_plural = u'Pozycje faktury'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -239,26 +260,4 @@ class CostBreakdown(models.Model):
         verbose_name_plural = u'Podział kosztów'
 
         permissions = (
-            ("view_cost_chart", u"Może oglądać wykres podziału kosztów"),
-        )
-
-
-class UserProfile(AbstractUser):
-    stamp = models.ImageField(upload_to='stamps/', null=True, blank=True, verbose_name=u'Pieczątka')
-    signature = models.ImageField(upload_to='signatures/', null=True, blank=True, verbose_name=u'Podpis')
-    phone = models.CharField("Telefon", max_length=100, blank=True, null=True)
-
-    class Meta:
-        ordering = ['username', 'first_name', ]
-
-    def __str__(self):
-        # check if name is provided
-        try:
-            name = self.get_full_name()
-        except:
-            name = self.username
-
-        if not name:
-            name = self.username
-
-        return name
+            ("view_cost_chart", u"Może oglądać wykres podziału kosztów"),        )

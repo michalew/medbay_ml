@@ -37,14 +37,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'crm.apps.CrmConfig',
     'cmms.apps.CmmsConfig',
     'costs.apps.CostsConfig',
-    'crm.apps.CrmConfig',
     'dane.apps.DaneConfig',
     'reminders.apps.RemindersConfig',
     'utils.apps.UtilsConfig',
     'guardian',
     'django_comments',
+    'simple_history',
+
 ]
 
 SITE_ID = 1
@@ -60,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
