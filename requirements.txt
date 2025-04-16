@@ -12,6 +12,8 @@ click-repl==0.3.0
 Django==5.1.6
 django-contrib-comments==2.2.0
 django-guardian==2.4.0
+django-simple-history==3.8.0
+djangorestframework==3.16.0
 idna==3.10
 isodate==0.7.2
 kombu==5.4.2
