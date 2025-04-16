@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'rest_framework',
     'crm.apps.CrmConfig',
     'cmms.apps.CmmsConfig',
     'costs.apps.CostsConfig',

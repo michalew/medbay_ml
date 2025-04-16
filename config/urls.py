@@ -16,8 +16,39 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from cmms.views import (
+    CostCentreViewSet,
+    LocationViewSet,
+    ContractorViewSet,
+    InvoiceViewSet,
+    UserProfileViewSet,
+    DeviceViewSet,
+    MakeViewSet,
+    GenreViewSet,
+    TicketViewSet,
+    ServiceViewSet,
+    HospitalViewSet,
+    MileageViewSet
+)
+
+# Router dla API v1
+router = DefaultRouter()
+router.register(r'v1/cost_centre', CostCentreViewSet)
+router.register(r'v1/location', LocationViewSet)
+router.register(r'v1/contractor', ContractorViewSet)
+router.register(r'v1/invoice', InvoiceViewSet)
+router.register(r'v1/userprofile', UserProfileViewSet)
+router.register(r'v1/device', DeviceViewSet)
+router.register(r'v1/make', MakeViewSet)
+router.register(r'v1/genre', GenreViewSet)
+router.register(r'v1/ticket', TicketViewSet)
+router.register(r'v1/service', ServiceViewSet)
+router.register(r'v1/hospital', HospitalViewSet)
+router.register(r'v1/mileage', MileageViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
     path('crm/', include('crm.urls')),
 ]
