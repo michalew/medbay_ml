@@ -4,9 +4,9 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
-from cmms.models import *
-from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile
-from .serializers import *
+from cmms.models import Device, Genre, Make, Mileage, Ticket, Service
+from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile, Hospital
+from .serializers import ContractorSerializer, CostCentreSerializer, LocationSerializer,InvoiceSerializer, UserProfileSerializer, HospitalSerializer, GenreSerializer, MakeSerializer, DeviceSerializer, MileageSerializer, TicketSerializer, ServiceSerializer
 
 # Pobranie zmodyfikowanego modelu użytkownika
 User = get_user_model()

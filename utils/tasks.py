@@ -70,7 +70,10 @@ def send_service_email(user_id, service_id, document_id, content_id, ticket_cont
     if not contractor_email:
         return False
 
-    recipient = [contractor_email] if contractor_email and not settings.DEBUG_EMAIL else ["medcmms.kontrahent@gmail.com"]
+    recipient = (
+        [contractor_email] if contractor_email and not settings.DEBUG_EMAIL
+        else [settings.DEBUG_EMAIL_RECIPIENT]
+    )
     if obj.person_creating: recipient.append(obj.person_creating.email)
     if obj.person_completing: recipient.append(obj.person_completing.email)
     if obj.person_assigned: recipient.append(obj.person_assigned.email)

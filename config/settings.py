@@ -54,6 +54,8 @@ SITE_ID = 1
 DOMAIN_NAME = "localhost:8000"
 DEFAULT_FROM_EMAIL = 'automat@medbay.pl'
 AUTH_USER_MODEL = 'crm.UserProfile'
+DEBUG_EMAIL = True
+DEBUG_EMAIL_RECIPIENT = "medcmms.kontrahent@gmail.com"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

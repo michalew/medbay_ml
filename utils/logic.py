@@ -90,7 +90,7 @@ def get_field_properties(obj: object, key: str, value: object = None) -> dict[st
             verbose_name = f"{getattr(obj, key).short_description}"
         else:
             # fallback to key
-            verbose_name = u"%s" % key
+            verbose_name = f"{key}"
 
     try:
         # check if field is m2m

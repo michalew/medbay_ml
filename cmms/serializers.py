@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from cmms.models import *
-from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile
+from cmms.models import Genre, Make, Mileage, Ticket, Service, Device
+from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile, Hospital
 
 # Pobranie zmodyfikowanego modelu użytkownika
 User = get_user_model()

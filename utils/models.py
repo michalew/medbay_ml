@@ -56,8 +56,8 @@ def get_diff(self):
                     app_label=model_path.split('.')[0],
                     model_name=model_path.split('.')[2]
                 )
-                value_old = list(map(int, filter(None, dict2.get(key, "").split(","))))
-                value_cur = list(map(int, filter(None, dict1.get(key, "").split(","))))
+                value_old = [int(x) for x in dict2.get(key, "").split(",") if x]
+                value_cur = [int(x) for x in dict1.get(key, "").split(",") if x]
                 removed = [x for x in value_old if x not in value_cur]
                 added = [x for x in value_cur if x not in value_old]
 
@@ -78,11 +78,11 @@ def get_diff(self):
     return diff
 
 
+"""
 class DiffedHistoricalRecords(HistoricalRecords):
     def create_history_model(self, model, inherited=None):
-        """
-        Creates a historical model to associate with the provided model.
-        """
+
+        #Creates a historical model to associate with the provided model.
         attrs = {'__module__': self.module}
 
         try:
@@ -116,3 +116,15 @@ class DiffedHistoricalRecords(HistoricalRecords):
         name = 'Historical%s' % model._meta.object_name
         registered_models[model._meta.db_table] = model
         return type(name, self.bases, attrs)
+"""
+
+
+class DiffedHistoricalRecords(HistoricalRecords):
+    def create_history_model(self, model, inherited=None):
+        # Wywołanie oryginalnej metody z klasy bazowej
+        history_model = super().create_history_model(model, inherited)
+
+        # Dodanie własnej logiki
+        history_model.add_to_class('diff', get_diff)
+
+        return history_model
