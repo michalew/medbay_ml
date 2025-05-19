@@ -47,8 +47,9 @@ router.register(r'v1/service', ServiceViewSet)
 router.register(r'v1/hospital', HospitalViewSet)
 router.register(r'v1/mileage', MileageViewSet)
 
+from dane.admin import dane_admin
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', dane_admin.urls),
     path('api/', include(router.urls)),
     path('crm/', include('crm.urls')),
 ]

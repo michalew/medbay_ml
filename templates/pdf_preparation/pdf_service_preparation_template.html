@@ -1,0 +1,76 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<body>
+<p style="text-align: right;">
+	{{ now }}r.
+</p>
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%">
+	<tbody>
+		<tr>
+			<td style="width:50%; text-align: left;">
+                <img style="width:100px; height:100px" src="{% if service.hospital.logo %}{{ service.hospital.logo.url }}{% endif %}"><br/>
+				{{ service.hospital.name }}<br/>
+                {{ service.hospital.street }} {{ service.hospital.street_number }}<br/>
+                {{ service.hospital.postal_code }} {{ service.hospital.city }}<br/>
+                telefon: {{ service.hospital.telephone }} fax: {{ service.hospital.fax }}<br/>
+                email: {{ service.hospital.email }}<br/>
+            </td>
+			<td style="width:50%; text-align: right;">
+				{{ service.contractor.name }}<br />
+                {{ service.contractor.street }} {{ service.contractor.street_number }}<br/>
+                {{ service.contractor.postal_code }} {{ service.contractor.city }}<br/>
+                {{ service.contractor.email }}<br/>
+				NIP: {{ service.contractor.NIP }}
+            </td>
+		</tr>
+	</tbody>
+</table>
+<br/>
+<div style="text-align: center;">
+    <b>Zlecenie nr #{{ service.id }}</b>
+</div>
+<div>
+    {% for ticket in service.ticket.all %}
+        {{ service.hospital.name }} zleca <br>
+        {% for device in ticket.device.all %}
+            * {{ ticket.get_sort_display|upper }} {% if ticket.cyclic %} CYKLICZNY {% endif %}
+            zgodnie z zaleceniami producentów:<br/><br/>
+
+            - {{ device.name }} {{ device.model }} nr ser. {{ device.serial_number }}<br/>
+              {{ device.location.name }}<br>
+              {{ device.location.street }} {{ device.location.street_number }}
+              {% if device.location_place %}{{ device.location_place }}{% endif %}<br>
+              tel.: {{ device.location.telephone }} fax: {{ device.location.fax }}<br>
+              email: {{ device.location.email }}<br/><br/>
+            Dane kontaktowe na oddziale:<br/>
+            {{ device.person_responsible.first_name }} {{ device.person_responsible.last_name }}<br/>
+            email: {{ device.person_responsible.email }}<br/> telefon: {{ device.person_responsible.phone }}<br/><br/>
+
+            Dane kontaktowe (nadzór techniczny):<br/>
+            {{ device.technical_supervisor.first_name }} {{ device.technical_supervisor.last_name }}<br/>
+            email: {{ device.technical_supervisor.email }} telefon: {{ device.technical_supervisor.phone }}
+            <br/><br/>
+        {% endfor %}
+    {% endfor %}
+
+    <b>Prosimy o przesłanie kosztorysu przed wykonaniem usługi<br/>
+    na nr fax: {{ service.hospital.fax }} lub email [osoba zlecająca] {{ service.person_creating.email }}</b><br/><br/>
+
+    Po akceptacji kosztów prosimy o kontakt w celu umówienia wizyty.<br/><br/>
+
+    Wszelkie czynności serwisowe prosimy szczegółowo opisać w raportach serwisowych z podaniem w szczególności:
+    jednoznacznego określenia czy aparat jest sprawny oraz <b>identyfikowalnego podpisu osoby wykonującej przegląd oraz daty kolejnego przeglądu.</b>
+    <br/><br/>
+</div>
+<p style="text-align: right;">
+	Z poważaniem,<br/>
+    Dział Aparatury Medycznej<br/><br/>
+
+    <img style="width:100px; height:100px" src="{% if service.person_creating.stamp %}{{ service.person_creating.stamp.url }}{% endif %}"><br/>
+
+</p>
+</body>
+</html>
+
+

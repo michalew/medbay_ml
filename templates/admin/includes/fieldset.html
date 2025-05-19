@@ -1,0 +1,255 @@
+{% load show_history %}
+
+{% if single_device %}
+    <script>
+        var single_device = true;
+    </script>
+{% endif %}
+
+{% if fieldset.name == "Podsumowanie" %}
+    {% if content_type_model == "ticket" or content_type_model == "service" %}
+        {% block inline_field_sets %}
+            {% for inline_admin_formset in inline_admin_formsets %}
+                {% include inline_admin_formset.opts.template %}
+            {% endfor %}
+        {% endblock %}
+    {% endif %}{% endif %}
+
+<fieldset class="module aligned {{ fieldset.classes }}">
+
+    {% if fieldset.name %}<h2>{{ fieldset.name }}</h2>{% endif %}
+    {% if fieldset.description %}
+        <div class="description">{{ fieldset.description|safe }}</div>
+    {% endif %}
+    {% for line in fieldset %}
+
+        <div class="form-row{% if line.fields|length == 1 and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+            {% if line.fields|length == 1 %}{{ line.errors }}{% endif %}
+            {% for field in line %}
+                {% if content_type_model == 'ticket' and  field.field.name == 'timestamp' %}
+                    <p style="margin: 0; padding:0; font-weight: bold; text-decoration: underline">Informacje dot.
+                        utworzenia zgłoszenia</p>
+                {% endif %}
+                {% if content_type_model == 'ticket' and  field.field.name == 'planned_date_execute' %}
+                    <p style="margin: 0; padding:0; font-weight: bold; text-decoration: underline">Informacje dot.
+                        planowania wykonania</p>
+                {% endif %}
+                {% if content_type_model == 'ticket' and  field.field.name == 'date_execute' %}
+                    <p style="margin: 0; padding:0; font-weight: bold; text-decoration: underline">Informacje dot.
+                        wykonania zgłoszenia</p>
+                {% endif %}
+                {% if content_type_model == 'ticket' and  field.field.name == 'date_closing' %}
+                    <p style="margin: 0; padding:0; font-weight: bold; text-decoration: underline">Informacje dot.
+                        zamknięcia zgłoszenia</p>
+                {% endif %}
+                {% if field.field.name in custom_filter_fields %}
+                    {{ field.label_tag }}
+                    {% if field.field.name == 'device' %}
+                        {% if object.device.all or object.device %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Zmień powiązane
+                                obiekty</a>
+                            <div>Wybrane obiekty:</div>
+                            <table id="related_devices" style="margin-left: 100px">
+                                <tr>
+                                    <td>Id</td>
+                                    <td>Nazwa</td>
+                                    <td>Producent</td>
+                                    <td>Model</td>
+                                    <td>Nr seryjny</td>
+                                    <td>Nr inwentarzowy</td>
+                                    <td>Lokalizacja</td>
+                                </tr>
+                                {% if object.device and single_device %}
+                                    <input type="hidden" name="device" value="{{ object.device.pk }}">
+                                    <tr class="current_related_objects_{{ field.field.name }}">
+                                        <td id="{{ object.device.pk }}">{{ object.device.pk }}.</td>
+                                        <td>
+                                            <a href="{{ object.device.get_absolute_url }}">
+                                                {{ object.device }}</a>
+                                        </td>
+                                        <td>{{ object.device.make }}</td>
+                                        <td>{{ object.device.model }}</td>
+                                        <td>{{ object.device.serial_number }}</td>
+                                        <td>{{ object.device.inventory_number }}</td>
+                                        <td>{{ object.device.location }}</td>
+                                    </tr>
+                                {% endif %}
+
+                                {% for current_related_object in object.device.all %}
+                                    <input type="hidden" name="device" value="{{ current_related_object.pk }}">
+                                    <tr class="current_related_objects_{{ field.field.name }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>
+                                            <a href="{{ current_related_object.get_absolute_url }}">
+                                                {{ current_related_object }}</a>
+                                        </td>
+                                        <td>{{ current_related_object.make }}</td>
+                                        <td>{{ current_related_object.model }}</td>
+                                        <td>{{ current_related_object.serial_number }}</td>
+                                        <td>{{ current_related_object.inventory_number }}</td>
+                                        <td>{{ current_related_object.location }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Dodaj powiązane
+                                obiekty</a>
+                            <table id="related_devices" style="margin-left: 100px">
+                                <tr>
+                                    <td><p>Brak powiązanych urządzeń</p></td>
+                                </tr>
+                            </table>
+                        {% endif %}
+                    {% endif %}
+                    {% if field.field.name == 'service' %}
+                        {% if object.service.all %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Zmień powiązane
+                                obiekty</a>
+                            <div>Wybrane obiekty:</div>
+                            <table id="related_services" style="margin-left: 100px">
+                                <tr>
+                                    <td>Id</td>
+                                    <td>Nazwa</td>
+                                    <td>Data dodania</td>
+                                    <td>Osoba zlecająca</td>
+                                    <td>Kontrahent</td>
+                                    <td>Status</td>
+                                </tr>
+                                {% for current_related_object in object.service.all %}
+                                    <input type="hidden" name="service" value="{{ current_related_object.pk }}">
+                                    <tr class="current_related_objects_{{ field.field.name }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>
+                                            <a href="{{ current_related_object.get_absolute_url }}">
+                                                {{ current_related_object }}</a>
+                                        </td>
+                                        <td>{{ current_related_object.timestamp }}</td>
+                                        <td>{{ current_related_object.person_creating }}</td>
+                                        <td>{{ current_related_object.contractor }}</td>
+                                        <td>{{ current_related_object.get_status_display }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Dodaj powiązane
+                                obiekty</a>
+                            <table id="related_services" style="margin-left: 100px">
+                                <tr>
+                                    <td><p>Brak powiązanych zleceń</p></td>
+                                </tr>
+                            </table>
+                        {% endif %}
+                    {% endif %}
+                    {% if field.field.name == 'external_service' %}
+                        {% if object.get_services %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Zmień powiązane
+                                obiekty</a>
+                            <div>Wybrane obiekty:</div>
+                            <table id="related_services" style="margin-left: 100px">
+                                <tr>
+                                    <td>Id</td>
+                                    <td>Nazwa</td>
+                                    <td>Data dodania</td>
+                                    <td>Osoba zlecająca</td>
+                                    <td>Kontrahent</td>
+                                    <td>Status</td>
+                                </tr>
+                                {% for current_related_object in object.get_services %}
+                                    <input type="hidden" name="external_service"
+                                           value="{{ current_related_object.pk }}">
+                                    <tr class="current_related_objects_{{ field.field.name }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>
+                                            <a href="{{ current_related_object.get_absolute_url }}">
+                                                {{ current_related_object }}</a>
+                                        </td>
+                                        <td>{{ current_related_object.timestamp }}</td>
+                                        <td>{{ current_related_object.person_creating }}</td>
+                                        <td>{{ current_related_object.contractor }}</td>
+                                        <td>{{ current_related_object.get_status_display }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Dodaj powiązane
+                                obiekty</a>
+                            <table id="related_services" style="margin-left: 100px">
+                                <tr>
+                                    <td><p>Brak powiązanych zleceń</p></td>
+                                </tr>
+                            </table>
+                        {% endif %}
+                    {% endif %}
+                    {% if field.field.name == 'ticket' %}
+                        {% if object.ticket.all %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Zmień powiązane
+                                obiekty</a>
+                            <div>Wybrane obiekty:</div>
+                            <table id="related_tickets" style="margin-left: 100px">
+                                <tr>
+                                    <td>Id</td>
+                                    <td>Nazwa</td>
+                                    <td>Data dodania</td>
+                                    <td>Data zamknięcia</td>
+                                </tr>
+                                {% for current_related_object in object.ticket.all %}
+                                    <input type="hidden" name="ticket" value="{{ current_related_object.pk }}">
+                                    <tr class="current_related_objects_{{ field.field.name }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>
+                                            <a href="{{ current_related_object.get_absolute_url }}">
+                                                {{ current_related_object }}</a>
+                                        </td>
+                                        <td>{{ current_related_object.timestamp }}</td>
+                                        <td>{{ current_related_object.date_closing }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <a class='filter-objects' data-objects_name="{{ field.field.name }}">Dodaj powiązane
+                                obiekty</a>
+                            <table id="related_tickets" style="margin-left: 100px">
+                                <tr>
+                                    <td><p>Brak powiązanych zgłoszeń</p></td>
+                                </tr>
+                            </table>
+
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <div{% if not line.fields|length == 1 %}
+                        class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}"{% endif %}>
+                        {% if not line.fields|length == 1 and not field.is_readonly %}{{ field.errors }}{% endif %}
+                        {% if field.is_checkbox %}
+                            {{ field.field }}{{ field.label_tag }}
+                        {% else %}
+                            {% if content_type_model == "device" and field.field.name == "service_interval_type" %}{% else %}
+                                {{ field.label_tag }}{% endif %}
+                            {% if field.is_readonly %}
+                                {% if content_type_model == "service" and field.field.name == "person_creating" and not object.pk %}
+                                    <p>{{ request.user }}</p>
+                                {% else %}
+                                    <p>
+                                        {% if content_type_model == "device" and field.field.name == "date_next_service" %}
+                                            {{ object.date_next_service|date:'d.m.Y'|default:"(Brak)" }}
+                                        {% else %}
+                                            {{ field.contents|linebreaksbr }}
+                                        {% endif %}
+                                    </p>
+                                {% endif %}
+                            {% else %}
+                                {{ field.field }}
+                            {% endif %}
+                        {% endif %}
+                        {% if field.field.help_text %}
+                            <p class="help">{{ field.field.help_text|safe }}</p>
+                        {% endif %}
+                        {% if content_type_model == "device" and field.field.name == "service_interval_type" %}</div>
+                        {% endif %}
+                    {% if content_type_model == "device" and field.field.name == "service_interval" %}{% else %}</div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+</fieldset>

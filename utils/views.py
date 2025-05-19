@@ -18,7 +18,7 @@ from xhtml2pdf import pisa
 from xlwt import Workbook
 
 from cmms.models import Service, Document, Device
-from logic import get_field_properties
+from utils.logic import get_field_properties
 from utils.tasks import send_service_email
 
 User = get_user_model()

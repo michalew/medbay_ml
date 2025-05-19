@@ -1,0 +1,128 @@
+<h2>Filtr urządzeń</h2>
+<form id="advanced_device_filter_form" action="." method="POST">{% csrf_token %}
+    {{ advanced_filter_form.advanced_device_filter }}
+    <table id="advanced_filter_table">
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.name.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.name_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.name }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_name" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.genre.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.genre_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.genre }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_genre" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.make.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.make_operator }}</td>
+            <td class="advanced_filter_td_field last ui-widget">{{ advanced_filter_form.make }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_make" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.model.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.model_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.model }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_model" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.serial_number.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.serial_number_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.serial_number }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_serial_number" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.inventory_number.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.inventory_number_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.inventory_number }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_inventory_number" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.udt_number.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.udt_number_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.udt_number }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_udt_number" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.cost_centre.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.cost_centre_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.cost_centre }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_cost_centre" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.location.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.location_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.location }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_location" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.location_place.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.location_place_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.location_place }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_location_place" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.group.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.group_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.group }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_group" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.status.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.status_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.status }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_status" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.technical_supervisor.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.technical_supervisor_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.technical_supervisor }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_technical_supervisor" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.date_manufactured_from.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='date_manufactured'>{{ advanced_filter_form.date_manufactured_operator }}</td>
+            <td colspan="2" class="advanced_filter_td_field date_manufactured_from_to last">{{ advanced_filter_form.date_manufactured_from }} - {{ advanced_filter_form.date_manufactured_to }}</td>
+            <td class="advanced_filter_td_field date_manufactured last">{{ advanced_filter_form.date_manufactured }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_date_manufactured" colspan="3"></td></tr>
+
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.date_warranty_from.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='date_warranty'>{{ advanced_filter_form.date_warranty_operator }}</td>
+            <td colspan="1" class="advanced_filter_td_field date_warranty_from_to last">{{ advanced_filter_form.date_warranty_from }} - {{ advanced_filter_form.date_warranty_to }}</td>
+            <td class="advanced_filter_td_field date_warranty last">{{ advanced_filter_form.date_warranty }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_date_warranty" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.person_responsible.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.person_responsible_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.person_responsible }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_person_responsible" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.date_bought_from.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='date_bought'>{{ advanced_filter_form.date_bought_operator }}</td>
+            <td colspan="1" class="advanced_filter_td_field date_bought_from_to last">{{ advanced_filter_form.date_bought_from }} - {{ advanced_filter_form.date_bought_to }}</td>
+            <td class="advanced_filter_td_field date_bought last">{{ advanced_filter_form.date_bought }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_date_bought" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.contractor.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.contractor_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.contractor }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_contractor" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.remarks.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.remarks_operator }}</td>
+            <td colspan="2" class="advanced_filter_td_text_field last">{{ advanced_filter_form.remarks }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_remarks" colspan="3"></td></tr>
+    </table>
+    <input class="search" type="submit" value="Szukaj"/>
+</form>
+
+
+<script type="text/javascript" src="/site_media/filter_objects.js"></script>

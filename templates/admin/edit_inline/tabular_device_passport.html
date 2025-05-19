@@ -1,0 +1,148 @@
+{% load i18n admin_urls admin_static admin_modify %}
+<div class="inline-group" id="{{ inline_admin_formset.formset.prefix }}-group">
+  <div class="tabular inline-related {% if forloop.last %}last-related{% endif %}">
+{{ inline_admin_formset.formset.management_form }}
+<fieldset class="module collapse open collapsed">
+   <h2>{{ inline_admin_formset.opts.verbose_name_plural|capfirst }}</h2>
+   {{ inline_admin_formset.formset.non_form_errors }}
+   <table class="hide-on-print">
+     {% if can_add_devicepassport %}<thead><tr>
+     {% for field in inline_admin_formset.fields %}
+       {% if not field.widget.is_hidden %}
+         <th{% if forloop.first %} colspan="2"{% endif %}{% if field.required %} class="required"{% endif %}>{{ field.label|capfirst }}
+         {% if field.help_text %}&nbsp;<img src="{% static "admin/img/icon-unknown.gif" %}" class="help help-tooltip" width="10" height="10" alt="({{ field.help_text|striptags }})" title="{{ field.help_text|striptags }}" />{% endif %}
+         </th>
+       {% endif %}
+     {% endfor %}
+     </tr></thead>{% endif %}
+
+     <tbody>
+     {% for inline_admin_form in inline_admin_formset %}
+        {% if inline_admin_form.form.non_field_errors %}
+        <tr><td colspan="{{ inline_admin_form|cell_count }}">{{ inline_admin_form.form.non_field_errors }}</td></tr>
+        {% endif %}
+        <tr class="form-row {% if forloop.last %} empty-form{% endif %}" {% if inline_admin_form.original %}style="display: none"{% endif %}
+             id="{{ inline_admin_formset.formset.prefix }}-{% if not forloop.last %}{{ forloop.counter0 }}{% else %}empty{% endif %}">
+        <td class="original">
+          {% if inline_admin_form.needs_explicit_pk_field %}{{ inline_admin_form.pk_field.field }}{% endif %}
+          {{ inline_admin_form.fk_field.field }}
+          {% spaceless %}
+          {% for fieldset in inline_admin_form %}
+            {% for line in fieldset %}
+              {% for field in line %}
+                {% if field.field.is_hidden %} {{ field.field }} {% endif %}
+              {% endfor %}
+            {% endfor %}
+          {% endfor %}
+          {% endspaceless %}
+        </td>
+        {% with forloop.counter0 as formset_id %}
+        {% if not inline_admin_form.original %}
+        {% for fieldset in inline_admin_form %}
+          {% for line in fieldset %}
+            {% for field in line %}
+
+              {% if not field.field.is_hidden %}
+              <td{% if field.field.name %} class="field-{{ field.field.name }}"{% endif %}>
+              {% if field.is_readonly %}
+                  <p>{{ field.contents }}</p>
+              {% else %}
+                  {{ field.field.errors.as_ul }}
+                  {{ field.field }}
+                  {% if field.field.name == "added_date" %}
+                  <div class="field-is_service">
+                      <input id="id_{{ inline_admin_formset.formset.prefix }}-{{ formset_id }}-is_service" 
+                             name="{{ inline_admin_formset.formset.prefix }}-{{ formset_id }}-is_service" type="checkbox">
+                      <label for="id_{{ inline_admin_formset.formset.prefix }}-{{ formset_id }}-is_service">Przegląd</label>
+                  </div>
+                  {% endif %}
+              {% endif %}
+              </td>
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        </tr>
+     {% endfor %}
+     </tbody>
+   </table>
+
+    <table id="inline-passport-contents">
+        <thead>
+            <th style="width: 140px;">Data</th>
+            <th>Treść</th>
+            <th>Autor</th>
+            {% if can_update_devicepassport %}
+            <th class="hide-on-print" style="width: 40px;">Edytuj</th>
+            {% endif %}
+            {% if inline_admin_formset.formset.can_delete %}
+            <th class="hide-on-print" style="width: 40px;">Usuń</th>
+            {% endif %}
+        </thead>
+        {% for inline_admin_form in inline_admin_formset %}
+            {% if inline_admin_form.original %}
+            <tr>
+                {% for fieldset in inline_admin_form %}
+                {% for line in fieldset %}
+                    {% for field in line %}
+                        {% if not field.field.is_hidden %}
+                        <td{% if field.field.name %} class="field-{{ field.field.name }}"{% endif %}>
+                        {% if field.is_readonly %}
+                            <p>{{ field.contents }}</p>
+                        {% else %}
+                            <p id="obj-{{ inline_admin_form.original.pk }}-field-{{ forloop.parentloop.counter }}-readonly">
+                                {% if field.field.name == "added_date" %}
+                                {{ field.field.value|date:"d.m.Y" }}
+                                {% else %}
+                                {{ field.field.value|linebreaksbr }}
+                                {% endif %}
+                            </p>
+                            <div id="obj-{{ inline_admin_form.original.pk }}-field-{{ forloop.parentloop.counter }}-edit" style="display: none;">
+                            {{ field.field.errors.as_ul }}
+                            {{ field.field }}
+                            </div>
+                        {% endif %}
+                        </td>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {% endfor %}
+                <td>{{ inline_admin_form.original.added_user }}</td>
+                {% if can_update_devicepassport %}
+                <td class="hide-on-print"><a href="javascript:switchToEdit({{ inline_admin_form.original.pk }});"><i class="fa fa-pencil fa-lg"></i></a></td>
+                {% endif %}
+                {% if inline_admin_formset.formset.can_delete %}
+                <td class="delete hide-on-print">{% if inline_admin_form.original %}{{ inline_admin_form.deletion_field.field }}{% endif %}</td>
+                {% endif %}
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+</fieldset>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+(function($) {
+  $("#{{ inline_admin_formset.formset.prefix }}-group .tabular.inline-related tbody tr").tabularFormset({
+    prefix: "{{ inline_admin_formset.formset.prefix }}",
+    adminStaticPrefix: '{% static "admin/" %}',
+    addText: "{% blocktrans with inline_admin_formset.opts.verbose_name|capfirst as verbose_name %}Add another {{ verbose_name }}{% endblocktrans %}",
+    deleteText: "{% trans 'Remove' %}"
+  });
+})(django.jQuery);
+
+    function switchToEdit(obj_id) {
+        $("#obj-"+obj_id+"-field-1-readonly").hide();
+        $("#obj-"+obj_id+"-field-1-edit").show();
+        $("#obj-"+obj_id+"-field-2-readonly").hide();
+        $("#obj-"+obj_id+"-field-2-edit").show();
+    }
+</script>
+
+<style>
+    #inline-passport-contents .add-row { display: none; }
+</style>

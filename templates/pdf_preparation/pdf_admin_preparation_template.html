@@ -1,0 +1,206 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-size:12.0pt;
+                font-family: "Calibri",sans-serif;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                border: none !important;
+            }
+            table tr:first-child th {
+              border-top: 0;
+            }
+            table tr:last-child td {
+              border-bottom: 0;
+            }
+            table tr td:first-child,
+            table tr th:first-child {
+              border-left: 0;
+            }
+            table tr td:last-child,
+            table tr th:last-child {
+              border-right: 0;
+            }
+
+            table, th, td {
+                border: 1px solid #ccc;
+            }
+
+            td {
+                padding: 2px 5px 3px 5px;
+            }
+
+            h1 {
+                font-size:18.0pt;
+            }
+
+            .module h2 {
+                margin: 0;
+                padding: 2px 5px 3px 5px;
+                font-size: 12.5pt;
+                text-align: left;
+                font-weight: bold;
+                background: #7CA0C7;
+                color: white;
+            }
+
+            fieldset {
+                margin: 0;
+                padding: 0;
+            }
+
+            .module {
+                border: 1px solid #ccc;
+                margin-bottom: 5px;
+                background: white;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div>
+            <p align=right style='text-align:right'>
+                <div style="float:left; text-shadow: 1px 1px 0px rgb(68,114,196); font-weight: bold;">
+                    <span style="color:#12AEFF; font-size:20pt;">med</span><span style="color:#04AD5C; font-size:20pt;">CMMS</span>
+                </div>
+
+                <div style="float:right; font-size: 10pt;">
+                    <i>
+                        medCMMS – wydruk z systemu<br />
+                        data wydruku: {% now "Y-m-d" %}<br />
+                        wydrukowany przez: {{ request.user.get_full_name }}
+                    </i>
+                </div>
+            </p>
+
+            <br /><br /><br /><br /><!-- zimno :c -->
+
+            <h1>{{ model_verbose }} nr #{{ object_pk }}</h1>
+            {% for fieldset in selected_fieldsets %}
+            <fieldset class="module aligned">
+                <h2>{{ fieldset.0 }}</h2>
+                {% for field in fieldset.1 %}
+                <div class="form-row field-{{ field.0 }}">
+                    <div>
+                        {% if field.0 in custom_filter_fields %}
+                        {% if field.0 == 'device' %}
+                            {% if obj.device.all or obj.device %}
+                                <table>
+                                    <tr><td>Id</td><td>Nazwa</td><td>Producent</td><td>Model</td><td>Nr seryjny</td><td>Nr inwentarzowy</td><td>Lokalizacja</td></tr>
+                                    {% if obj.device and single_device %}
+                                        <tr class="current_related_objects_{{ field.0 }}">
+                                            <td id="{{ obj.device.pk }}">{{ obj.device.pk }}</td>
+                                            <td>{{ obj.device }}</td>
+                                            <td>{{ obj.device.make }}</td>
+                                            <td>{{ obj.device.model }}</td>
+                                            <td>{{ obj.device.serial_number }}</td>
+                                            <td>{{ obj.device.inventory_number }}</td>
+                                            <td>{{ obj.device.location }}</td>
+                                        </tr>
+                                    {% endif %}
+
+                                    {% for current_related_object in obj.device.all %}
+                                        <tr class="current_related_objects_{{ field.0 }}">
+                                            <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                            <td>{{ current_related_object }}</td>
+                                            <td>{{ current_related_object.make }}</td>
+                                            <td>{{ current_related_object.model }}</td>
+                                            <td>{{ current_related_object.serial_number }}</td>
+                                            <td>{{ current_related_object.inventory_number }}</td>
+                                            <td>{{ current_related_object.location }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            {% else %}
+                                <table>
+                                    <tr><td><p>Brak powiązanych urządzeń</p></td></tr>
+                                </table>
+                            {% endif %}
+                        {% endif %}
+                        {% if field.0 == 'service' %}
+                            {% if obj.service.all %}
+                                <table>
+                                    <tr>
+                                        <td>Id</td><td>Nazwa</td><td>Data dodania</td><td>Osoba zlecająca</td><td>Kontrahent</td><td>Status</td>
+                                    </tr>
+                                    {% for current_related_object in obj.service.all %}
+                                    <tr class="current_related_objects_{{ field.0 }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>{{ current_related_object }}</td>
+                                        <td>{{ current_related_object.timestamp }}</td>
+                                        <td>{{ current_related_object.person_creating }}</td>
+                                        <td>{{ current_related_object.contractor }}</td>
+                                        <td>{{ current_related_object.get_status_display }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            {% else %}
+                                <table>
+                                    <tr><td><p>Brak powiązanych zleceń</p></td></tr>
+                                </table>
+                            {% endif %}
+                        {% endif %}
+                        {% if field.0 == 'external_service' %}
+                            {% if obj.get_services %}
+                                <table>
+                                    <tr>
+                                        <td>Id</td><td>Nazwa</td><td>Data dodania</td><td>Osoba zlecająca</td><td>Kontrahent</td><td>Status</td>
+                                    </tr>
+                                    {% for current_related_object in obj.get_services %}
+                                        <tr class="current_related_objects_{{ field.0 }}">
+                                            <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                            <td>{{ current_related_object }}</td>
+                                            <td>{{ current_related_object.timestamp }}</td>
+                                            <td>{{ current_related_object.person_creating }}</td>
+                                            <td>{{ current_related_object.contractor }}</td>
+                                            <td>{{ current_related_object.get_status_display }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </table>
+                            {% else %}
+                                    <table><tr><td><p>Brak powiązanych zleceń</p></td></tr></table>
+                            {% endif %}
+                        {% endif %}
+                        {% if field.0 == 'ticket' %}
+                            {% if obj.ticket.all %}
+                                <table>
+                                    <tr>
+                                        <td>Id</td>
+                                        <td>Nazwa</td>
+                                        <td>Data dodania</td>
+                                        <td>Data zamknięcia</td>
+                                    </tr>
+                                    {% for current_related_object in obj.ticket.all %}
+                                    <tr class="current_related_objects_{{ field.0 }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>{{ current_related_object }}</td>
+                                        <td>{{ current_related_object.timestamp }}</td>
+                                        <td>{{ current_related_object.date_closing }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            {% else %}
+                                <table><tr><td><p>Brak powiązanych zgłoszeń</p></td></tr></table>
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <table id="id_{{ field.0 }}">
+                            <tr>
+                                <td width="25%"><p>{{ field.1 }}</p></td>
+                                <td>{% if field.2 %}{{ field.2 }}{% else %}------{% endif %}</td>
+                            </tr>
+                        </table>
+                    {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </fieldset>
+            {% endfor %}
+        </div>
+    </body>
+</html>

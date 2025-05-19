@@ -1,0 +1,19 @@
+<form class="form-horizontal" id="note">
+    {% csrf_token %}
+    <div class="control-group">
+        <label class="control-label" for="inputTitle">Treść notatki</label>
+
+        <div class="controls">
+            {{ form.title }}
+            {{ form.title.errors }}
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="inputTitle">Data</label>
+
+        <div class="controls">
+            {{ form.start_date }}
+            {{ form.start_date.errors }}
+        </div>
+    </div>
+</form>

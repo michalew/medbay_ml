@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Wybór pól{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .module-print-form h2 {
+        padding: 5px 5px 6px 5px;
+    }
+    .scrollable-box {
+        border: 1px solid #ccc;
+        padding: 2px;
+        margin: 0px 10px 0 10px;
+        overflow-y: scroll;
+        height:60vh;
+        min-width: 50vw;
+    }
+    .admin-print h1 {
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block bodyclass %}admin-print{% endblock %}
+
+{% block content %}
+<h1>Wybierz pola</h1>
+<form action="{% url "pdf-generate-admin" model_name %}?objects={{ request.GET.objects }}" target="_blank" method="POST" id="fields-selector">{% csrf_token %}
+    <div class="scrollable-box">
+    {% for set in fieldsets %}
+        <div class="module module-print-form">
+            <h2 id="{{ set.0 }}_module_title">
+                <span style="float:right;"><input style="margin-top: 0px" id="{{ set.0|slugify }}_module_checkbox" type="checkbox"></span>
+                {{ set.0 }} (<a id="{{ set.0 }}_module_toggle" href="javascript:toggleTable('{{ set.0 }}_module')">Ukryj</a>)
+
+                <script>
+                    $('#{{ set.0|slugify }}_module_checkbox').change(function() {
+                        var checkboxes = $("#{{ set.0|slugify }}_module_checkbox").parent().parent().next().find("input");
+                        for (var i = 0; i<checkboxes.length; i++) {
+                            checkboxes[i].checked = $(this).is(":checked");
+                        }
+                    });
+                </script>
+            </h2>
+            <table id="{{ set.0 }}_module" style="width: 100%;">
+                {% for field in set.1 %}
+                <tr>
+                    <td width="30px;"><input type="checkbox" {% if field.0 in default_selected %}checked="1"{% endif %} name="fields_{{ set.0 }}" value="{{ field.0 }}" /></td>
+                    <td style="text-align: left; padding-top: 7px">{{ field.1 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endfor %}
+    </div>
+    <br/>
+    <tr id="submit-row"><td colspan="2"><input type="submit" value="Wygeneruj PDF"></td></tr>
+</form>
+{% endblock %}

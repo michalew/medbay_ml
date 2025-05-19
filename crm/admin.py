@@ -1,31 +1,20 @@
 from django.contrib import admin
-from django import forms
-from .models import Hospital
-from .models import UserProfile
+from crm.models import Location, CostCentre, Contractor
 
 
-
-class HospitalAdminForm(forms.ModelForm):
-    class Meta:
-        model = Hospital
-        fields = '__all__'
-
-    class Media:
-        js = ('js/fetch_company_data.js',)
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    pass
 
 
-class HospitalAdmin(admin.ModelAdmin):
-    form = HospitalAdminForm
-    fieldsets = (
-        (None, {
-            'fields': ('NIP', 'name', 'REGON', 'KRS', 'street', 'street_number', 'postal_code', 'city', 'email')
-        }),
-        ('Dodatkowe informacje', {
-            'fields': ('logo', 'telephone', 'fax'),
-        }),
-    )
+@admin.register(CostCentre)
+class CostCentreAdmin(admin.ModelAdmin):
+    pass
 
 
-admin.site.register(Hospital, HospitalAdmin)
-
-admin.site.register(UserProfile)
+@admin.register(Contractor)
+class ContractorAdmin(admin.ModelAdmin):
+    # Możesz odkomentować i dostosować poniższe linie, jeśli chcesz dodać więcej funkcji do panelu admina
+    # list_display = ['nick', 'video', 'published', 'body', 'status']
+    # search_fields = ['nick', 'video__title', 'ip_address', 'body']
+    pass

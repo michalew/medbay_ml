@@ -1,0 +1,179 @@
+{% load i18n admin_modify admin_static admin_urls comments show_history %}
+
+<style xmlns="http://www.w3.org/1999/html">
+    td.original + td { border-left: 0px solid transparent; }
+    td.original + td a { display:none; }
+    td.original { border-right: 0px solid transparent; }
+    tr.empty-form { display: none; }
+    .hide-on-print { display: none; }
+</style>
+
+<div>
+    {% block form_top %}{% endblock %}
+    <div>
+        <h1>{{ model_verbose }} nr #{{ original.pk }}</h1>
+        {% block field_sets %}
+            {% for fieldset in adminform %}{% if content_type_model != "document" or not is_popup or not forloop.counter == 1 %}
+                {% include "admin/includes/readonly_fieldset.html" %}{% endif %}
+            {% endfor %}
+            {% block inline_field_sets %}
+                {% for inline_admin_formset in inline_admin_formsets %}
+                    {% include inline_admin_formset.opts.template %}
+                {% endfor %}
+            {% endblock %}
+
+            {% if show_external_services %}
+                <fieldset class="module aligned services">
+                    <h2>Zlecenia</h2>
+                    <div>
+                        {% if object.get_services %}
+                            <table>
+                                <tr>
+                                    <td>Id</td>
+                                    <td>Nazwa</td>
+                                    <td>Data dodania</td>
+                                    <td>Osoba zlecająca</td>
+                                    <td>Kontrahent</td>
+                                    <td>Status</td>
+                                </tr>
+                                {% for current_related_object in object.get_services %}
+                                    <tr class="current_related_objects_{{ field.field.name }}">
+                                        <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                        <td>{{ current_related_object }}</td>
+                                        <td>{{ current_related_object.timestamp }}</td>
+                                        <td>{{ current_related_object.person_creating }}</td>
+                                        <td>{{ current_related_object.contractor }}</td>
+                                        <td>{{ current_related_object.get_status_display }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <table>
+                                <tr><td><p>Brak powiązanych zleceń</p></td></tr>
+                            </table>
+                        {% endif %}
+                    </div>
+                </fieldset>
+            {% endif %}
+
+            {% if show_comments %}
+            {% if content_type_model == "ticket" or content_type_model == "service" %}
+                {% get_comment_count for original as comment_count %}
+                <style>
+                    .comments dl { margin-top: 0px; margin-bottom: -1px; }
+                            .comments dt
+                            {
+                                width: 24.5%;
+                                font-weight: bold;
+                                text-align: right;
+                                float: left; clear: left;
+                                margin:0;
+                                height: 4em;
+                                line-height: 16px;
+                                padding: 0.5em 1.5em 0.5em 0em;
+                            }
+                            .comments span { font-weight: normal; color: #999; }
+
+                            .comments dd
+                            {
+                                border-bottom: 1px solid #ccc;
+                                margin-left: 0px;
+                                min-height: 4em;
+                            }
+                            .comments dt {
+                            }
+                            .comments p {
+                                font-size: inherit;
+                                margin:0 0 0 25% !important;
+                                padding: 0.5em 1.5em 0.5em 1em !important;
+                                border-left: 1px solid #ccc;
+                                min-height: 4em;
+                                line-height: 16px;
+                            }
+                            .comments a {
+                                display: none;
+                            }
+                        </style>
+                <fieldset class="module aligned comments">
+                    <h2>Komentarze</h2>
+                    <div class="form-row sort">
+                        {% ifnotequal comment_count 0 %}
+                            {% render_comment_list for original %}
+                        {% else %}
+                            <p style="margin: 0 !important; min-height: 1em; border-left: 0 !important;">
+                                Brak komentarzy.
+                            </p>
+                        {% endifnotequal %}
+                    </div>
+                </fieldset>
+            {% endif %}
+            {% endif %}
+
+            {% if show_history and original %}
+            {% inline_history original %}
+            {% endif %}
+        {% endblock %}
+
+        {% block after_field_sets %}
+            {% if show_invoice_summary  %}
+            {% if cost_center_summary|length %}
+                <div class="inline-group" id="summary_set-group">
+                    <div class="tabular inline-related last-related">
+                        <fieldset class="module">
+                            <h2>Podsumowanie</h2>
+
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Lp.</th>
+                                    <th>Koszt netto</th>
+                                    <th>Koszt brutto</th>
+                                    <th>Symbol centrum kosztowego</th>
+                                    <th>Opis centrum kosztowego</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for key, row in cost_center_summary.items %}
+                                    <tr class="form-row row{% if forloop.counter|divisibleby:2 %}2{% else %}1{% endif %} has_original dynamic-summary_set" id="summary_set-{{ forloop.counter0 }}">
+                                        <td>
+                                            {{ forloop.counter }}.
+                                        </td>
+                                        <td>
+                                            {{ row.net_cost }}
+                                        </td>
+                                        <td>
+                                            {{ row.gross_cost }}
+                                        </td>
+                                        <td>
+                                            {{ row.cost_center_symbol }}
+                                        </td>
+                                        <td>
+                                            {{ row.cost_center_description }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </div>
+            {% else %}
+                <h2>Podsumowanie</h2>
+                <table>
+                    <tr>Brak podsumowania</tr>
+                </table>
+            {% endif %}
+            {% endif %}
+        {% endblock %}
+
+        {#{% block inline_field_sets %}#}
+        {% if content_type_model != "ticket" and content_type_model != "service" and content_type_model != 'invoice' and content_type_model != 'mileage' and content_type_model != 'device' and content_type_model != "inspection" %}
+            {% for inline_admin_formset in inline_admin_formsets %}
+                {% include inline_admin_formset.opts.template %}
+            {% endfor %}
+        {% endif %}
+        {#{% endblock %}#}
+
+        {% block after_related_objects %}{% endblock %}
+    </div>
+</div>

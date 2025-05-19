@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load admin_static %}
+{% block content %}
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/bootstrap2/css/bootstrap.css"
+          type="text/css">
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/bootstrap2/css/bootstrap-responsive.css"
+          type="text/css">
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/css/calendar.min.css" type="text/css">
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/css/custom.css?v=1" type="text/css">
+    <link rel="stylesheet" href="/site_media/jquery_datepicker/jquery-datepicker.css">
+
+    <div class="page-header">
+
+        <div class="pull-right form-inline">
+            <button href="#noteModal" role="button" class="btn btn-success" data-toggle="modal">Dodaj notatkę</button>
+            <a id="generateReport" href="{% url 'events_export' '1970-01-01' '9999-12-12' %}"><button role="button" class="btn btn-success">Generuj arkusz</button></a>
+            <div class="btn-group">
+                <button class="btn btn-primary" data-calendar-nav="prev"><< Wstecz</button>
+                <button class="btn" data-calendar-nav="today">Dzisiaj</button>
+                <button class="btn btn-primary" data-calendar-nav="next">Dalej >></button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-warning" data-calendar-view="year">Rok</button>
+                <button class="btn btn-warning active" data-calendar-view="month">Miesiąc</button>
+                <button class="btn btn-warning" data-calendar-view="week">Tydzień</button>
+                <button class="btn btn-warning" data-calendar-view="day">Dzień</button>
+            </div>
+        </div>
+        {#  Puste h3 do dynamicznego tytułu #}
+        <h3></h3>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="span9">
+                <div id="calendar"></div>
+            </div>
+            <div class="span3">
+                <div class="row-fluid text-center">
+                    <h4>Wydarzenia</h4>
+                    <small>Lista wydarzeń w bieżącym widoku</small>
+                    <br /><br />
+                    <table id="eventlist" class="table table-hover"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noteModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Dodaj notatkę</h3>
+        </div>
+        <div class="modal-body">
+            {% include 'reminders/note_form.html' %}
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Anuluj</button>
+            <button class="btn btn-primary" id="save">Zapisz</button>
+        </div>
+    </div>
+
+    <script src="/site_media/jquery_datepicker/jquery-datepicker.js"></script>
+    <script src="/site_media/jquery_datepicker/jquery-ui-lng-pl.js"></script>
+    <script type="text/javascript"
+            src="/site_media/BootstrapCalendar/bootstrap2/js/bootstrap.min.js"></script>
+    <script type="text/javascript"
+            src="/site_media/BootstrapCalendar/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="/site_media/BootstrapCalendar/js/language/pl-PL.js"></script>
+    <script type="text/javascript" src="/site_media/BootstrapCalendar/js/calendar.js"></script>
+    <script type="text/javascript" src="/site_media/BootstrapCalendar/js/script.js"></script>
+{% endblock %}
