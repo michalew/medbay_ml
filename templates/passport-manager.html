@@ -1,0 +1,136 @@
+{% if not is_submitted %}<!DOCTYPE html>
+<html lang="en">
+<div id="passport-manager-window">
+    <h3>Dodaj wpis do paszportu dla {{ model_verbose_name }} #{{ object.pk }}</h3>
+    <h4>{{ object }}</h4>
+
+    {{ form.errors }}
+
+    <form action="{% url "passport-manager" %}?model={{ model_name }}&obj={{ object_id }}" id="passport-manager-form" method="post">{% csrf_token %}
+        <div style="margin-bottom: 10px;">
+            {{ form.is_service }}
+            <label for="id_is_service">Przegląd</label>
+        </div>
+
+        <fieldset class="module aligned collapse open">
+            <h2>Urządzenia</h2>
+            <table id="related_devices">
+                <thead>
+                    <th></th>
+                    <th>Id</th>
+                    <th>Nazwa</th>
+                    <th>Producent</th>
+                    <th>Model</th>
+                    <th>Nr seryjny</th>
+                    <th>Nr inwentarzowy</th>
+                    <th>Lokalizacja</th>
+                </thead>
+                <tbody>
+                <tr class="current_related_objects_{{ field.field.name }}">
+                    {% if devices %}
+                    {% for device in devices %}
+                    <tr class="current_related_objects_device">
+                        <td><input {% if device in accessible_devices %}checked{% else %}disabled{% endif %} type="checkbox" class="device-checkbox" name="{{ device.pk }}"></td>
+                        <td id="{{ device.pk }}">{{ device.pk }}.</td>
+                        <td><a href="{{ device.get_absolute_url }}">{{ device }}</a></td>
+                        <td>{{ device.make }}</td>
+                        <td>{{ device.model }}</td>
+                        <td>{{ device.serial_number }}</td>
+                        <td>{{ device.inventory_number }}</td>
+                        <td>{{ device.location }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr colspan="8">Brak urządzeń</tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            {{ form.devices }}
+        </fieldset>
+
+        <fieldset class="module aligned ">
+            <h2>Szczegóły wpisu</h2>
+            <table style="width: 100%;">
+                <thead>
+                    <th>Data</th>
+                    <th>Wpis</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ added_date }}</td>
+                        <td>{{ form.text }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+
+        <div class="submit-row">
+            <input name="_save" class="default" type="submit" value="Zapisz">
+        </div>
+    </form>
+
+    <script>
+        var all_devices = [];
+
+        // callback function for device checkboxes
+        $('.device-checkbox').click(function(){
+            var device_pk = this.name;
+            if (this.checked) {
+                all_devices.push(device_pk);
+            } else {
+                all_devices.pop(device_pk);
+            }
+
+            // update field
+            $("#id_devices").val(all_devices);
+        });
+
+        $(function() {
+            {% if not form.errors %}
+                $("#id_devices").val("{% for device in accessible_devices %}{{ device.pk }}{% if not forloop.last %},{% endif %}{% endfor %}")
+            {% endif %}
+            $('#passport-manager-form').submit(function(event) {
+                event.preventDefault(); // Prevent the form from submitting via the browser
+                var form = $(this);
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: form.serialize()
+                }).done(function(data) {
+                    $("#passport-manager-window").html(data);
+                })
+            });
+        });
+    </script>
+</div>
+</html>
+{% else %}
+<div class="action-form">
+    <h1>Dodano wpisy do paszportu</h1>
+
+    <table>
+        <tr>
+            <th style="width: 50px;">Urządzenia</th>
+            <td colspan="3">
+                <ul>{% for device in device_objects %}<li><a href="{{ device.get_absolute_url }}">{{ device }} (#{{ device.pk }})</a></li>{% endfor %}</ul>
+            </td>
+        </tr>
+	    <tr>
+            <td colspan="4">{{ passport_text|linebreaksbr }}</td>
+        </tr>
+        <tr>
+            <th>Autor</th>
+            <td>{{ request.user }}</td>
+            <th style="width: 50px;">Data</th>
+            <td style="width: 110px;">{{ added_date }}</td>
+        </tr>
+    </table>
+
+    {% if failed_device_objects %}
+    <div>
+        <h4>Nie dodano wpisów do następujących urządzeń z powodu braku uprawnień</h4>
+        <ul>{% for device in failed_device_objects %}<li>{{ device }} (#{{ device.pk }})</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+</div>
+{% endif %}

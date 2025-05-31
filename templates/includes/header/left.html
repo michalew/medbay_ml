@@ -1,0 +1,83 @@
+{#<li{% if request.path == '/' %} class="active"{% endif %}><a href="/">Dashboard</a></li>#}
+<li id="dashboard"><a href="/"><img src="/site_media/images/icons/home.png" alt="Home" /></a></li>
+<li class="hide-mobile"><a href="/serwis">Serwis</a>
+    <ul>
+        <li><a href="/serwis?devices_group_id=1">Aparatura medyczna</a></li>
+        <li><a href="/serwis?devices_group_id=2">Sprzęt pomiarowy</a></li>
+        <li><a href="/serwis?devices_group_id=3">Infrastruktura</a></li>
+        <li><a href="/serwis?devices_group_id=4">Sprzęt IT</a></li>
+    </ul>
+</li>
+<li><a href="#">Narzędzia</a>
+    <ul>
+        {% if perms.cmms.add_ticket %}
+        <li><a class="headerTicketBtn"{% if device.pk %} data-device="{{ device.pk }}"{% endif %} href="#">Nowe zgłoszenie</a></li>
+        {% endif %}
+        {% if perms.cmms.add_device %}
+        <li class="hide-mobile"><a id="XaddDevice" target="_blank" href="{% url 'admin:cmms_device_add' %}">Dodaj urządzenie</a></li>
+        {% endif %}
+        {% if perms.cmms.view_changelist_inspection %}
+        <li class="hide-mobile"><a href="{% url 'inspections' %}">Przeglądy i konserwacje</a></li>
+        {% endif %}
+        {% if perms.reminders.view_event_calendar %}
+        <li class="hide-mobile"><a id="XCalendar" target="_blank" href="/kalendarz">Kalendarz</a></li>
+        {% endif %}
+        <li class="hide-mobile"><a href="{% url 'costs' %}">Koszty używania</a></li> {# TODO check perms here #}
+    </ul>
+</li>
+<li class="hide-mobile"><a href="#">Baza danych</a>
+{% if False %}
+    <ul>
+        {% if perms.cmms.change_device %}
+            <li><a href="{% url 'admin:cmms_device_changelist' %}">Urzadzenia</a></li>
+        {% endif %}
+        {% if perms.cmms.change_ticket %}
+            <li><a href="{% url 'admin:cmms_ticket_changelist' %}">Zgłoszenia</a></li>
+        {% endif %}
+        {% if perms.cmms.change_service %}
+            <li><a href="{% url 'admin:cmms_service_changelist' %}">Zlecenia</a></li>
+        {% endif %}
+        {% if perms.cmms.change_make %}
+            <li><a href="{% url 'admin:cmms_make_changelist' %}">Producenci</a></li>
+        {% endif %}
+        {% if perms.cmms.change_mileage %}
+            <li><a href="{% url 'admin:cmms_mileage_changelist' %}">Liczniki</a></li>
+        {% endif %}
+        {% if perms.cmms.change_unit %}
+            <li><a href="{% url 'admin:cmms_unit_changelist' %}">Jednostki</a></li>
+        {% endif %}
+        {% if perms.crm.change_contractor %}
+            <li><a href="{% url 'admin:crm_contractor_changelist' %}">Kontrahenci</a></li>
+        {% endif %}
+        {% if perms.crm.change_costcentre %}
+            <li><a href="{% url 'admin:crm_costcentre_changelist' %}">Centra kosztowe</a></li>
+        {% endif %}
+        {% if perms.crm.change_invoice %}
+            <li><a href="{% url 'admin:crm_invoice_changelist' %}">Faktury</a></li>
+        {% endif %}
+        {% if perms.cmms.change_document %}
+            <li><a href="{% url 'admin:cmms_document_changelist' %}">Dokumenty</a></li>
+        {% endif %} {# TODO document #}
+        {% if perms.crm.change_location %}
+            <li><a href="{% url 'admin:crm_location_changelist' %}">Lokalizacje</a></li>
+        {% endif %}
+    </ul> 
+{% endif %}
+
+</li>
+{% if perms.crm.change_userprofile or perms.auth.change_group %}
+<li class="hide-mobile"><a href="#">Użytkownicy</a>
+    <ul>
+    {% if False %}
+        {% if perms.crm.change_userprofile %}
+        <li style="{% if request.path == '/a/crm/userprofile/' %} text-decoration: underline;{% endif %}"><a href="{% url 'admin:crm_userprofile_changelist' %}">Użytkownicy</a></li>
+        {% endif %}
+        
+        {% if perms.auth.change_group %}
+        <li style="{% if request.path == '/a/auth/group/' %} text-decoration: underline;{% endif %}"><a href="{% url 'admin:auth_group_changelist' %}">Grupy</a></li>
+        {% endif %}
+    {% endif %}
+
+    </ul>
+</li>
+{% endif %}

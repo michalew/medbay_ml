@@ -1,0 +1,127 @@
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <style>
+        div, span, p, td, h1, tr {
+            font-size:12.0pt;
+            font-family: "Calibri",sans-serif;
+        }
+            
+        h1 {
+            font-size:18.0pt;
+            font-weight: bold;
+        }
+            
+        td {
+            padding:0 15px 0 15px;
+            border:solid black 1.0pt;
+            width:177.75pt;
+        }
+        </style>
+
+    </head>
+
+    <body>
+{% block content %}
+        <div>
+            <p align=right style='text-align:right'>
+                <div style="float:left; text-shadow: 1px 1px 0px rgb(68,114,196); font-weight: bold;">
+                    <span style="color:#12AEFF; font-size:20pt;">med</span><span style="color:#04AD5C; font-size:20pt;">CMMS</span>
+                </div>
+
+                <div style="float:right; font-size: 10pt;">
+                    <i>
+                        medCMMS – wydruk z systemu<br />
+                        data wydruku: {% now "Y-m-d" %}<br />
+                        wydrukowany przez: {{ request.user.get_full_name }}
+                    </i>
+                </div>
+            </p>
+
+            <br /><br /><br /><br /><!-- zimno :c -->
+
+            <h1>Urządzenie nr #{{ device.pk }}</h1>
+
+            <table style='border-collapse:collapse' >
+                <tr>
+                    <td>Nazwa:</td>
+                    <td>{% if device.name %}{{ device.name }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Producent:</td>
+                    <td>{% if device.make %}{{ device.make }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Model:</td>
+                    <td>{% if device.model %}{{ device.model }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Rodzaj:</td>
+                    <td>{{ device.genre }}</td>
+                </tr>
+                <tr>
+                    <td>Grupa:</td>
+                    <td>{{ device.get_group_name }}</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td>{{ device.get_status_name }}</td>
+                </tr>
+                <tr>
+                    <td>Nr seryjny:</td>
+                    <td>{% if device.serial_number %}{{ device.serial_number }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Nr inwentarzowy:</td>
+                    <td>{% if device.inventory_number %}{{ device.inventory_number }}{% else %}BRAK{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Nr UDT:</td>
+                    <td>{% if device.udt_number %}{{ device.udt_number }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Data produkcji:</td>
+                    <td>{% if device.date_manufactured %}{{ device.date_manufactured }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Data zakupu:</td>
+                    <td>{% if device.date_bought %}{{ device.date_bought }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Data upływu gwarancji:</td>
+                    <td>{% if device.date_warranty %}{{ device.date_warranty }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Centrum Kosztowe:</td>
+                    <td>{% if device.cost_centre %}{{ device.cost_centre }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Lokalizacja:</td>
+                    <td>{% if device.location %}{{ device.location }}{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Miejsce:</td>
+                    <td>{% if device.location_place %} {{ device.location_place }}{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Osoba odpowiedzialna:</td>
+                    <td>{% if device.person_responsible %}{{ device.person_responsible }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Nadzór techniczny:</td>
+                    <td>{% if device.technical_supervisor %}{{ device.technical_supervisor }}{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Firma serwisująca:</td>
+                    <td>{% if device.contractor %}{{ device.contractor }}{% else %}(NIE WYBRANO){% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Uwagi:</td>
+                    <td>{% if device.remarks %}{{ device.remarks }}{% else %}-{% endif %}</td>
+                </tr>
+            </table>
+        </div>
+    {% endblock %}
+</body>
+</html>

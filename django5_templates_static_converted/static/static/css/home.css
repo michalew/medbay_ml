@@ -1,0 +1,11 @@
+#chart-tickets,
+#chart-costs,
+#chart-devices {
+    width: 100%;
+    height: 500px;
+    font-size: 11px;
+}
+
+.module table {
+    width: 100%
+}

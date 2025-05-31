@@ -1,0 +1,74 @@
+<h2>Filtr liczników</h2>
+<form id="advanced_mileage_filter_form" action="." method="POST">{% csrf_token %}
+    {{ advanced_filter_form.advanced_mileage_filter }}
+    <table id="advanced_filter_table">
+        
+        <tr id="related_devices" class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.device.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.device_operator }}</td>
+            <td class="advanced_filter_td_field last"   >
+                {{ advanced_filter_form.device }}
+                <button class="filter-objects" data-objects_name='device' data-is_list='true'
+                     data-current_list_name='document'>
+                Znajdź
+                </button>
+            </td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_device" colspan="3"></td></tr>
+        <tr class="related_devices_title">
+            <td colspan="3" style='text-align: left;'>Wybrane rekordy:</td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="10" style="width: 475px">
+                <table>
+                    <tr id="related_devices_table_header">
+                        <td class='related_objects_id'>Id</td><td>Nr inw.</td><td style="width:155px !important;">Nazwa</td><td>Producent</td><td>Lokalizacja</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+        </tr>
+        
+        <!--
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.date_from.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='date'>{{ advanced_filter_form.date_operator }}</td>
+            <td colspan="3" class="advanced_filter_td_field date_to last">{{ advanced_filter_form.date_from }} - {{ advanced_filter_form.date_to }}</td>
+            <td class="advanced_filter_td_field date last">{{ advanced_filter_form.date }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_date" colspan="3"></td></tr>
+        -->
+        
+        
+        
+        
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.status.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='status'>{{ advanced_filter_form.status_operator }}</td>
+            <td class="advanced_filter_td_field status last">{{ advanced_filter_form.status }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_status" colspan="3"></td></tr>
+        
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.unit.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='unit'>{{ advanced_filter_form.unit_operator }}</td>
+            <td class="advanced_filter_td_field unit last">{{ advanced_filter_form.unit }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_unit" colspan="3"></td></tr>
+        
+        {% comment %}<!--{% endcomment %-->
+        {% for field in advanced_filter_form %}
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ field.label }}:</td>
+            <td class="advanced_filter_td_field last"   >
+                {{ field }}
+            </td>
+        </tr>
+        {% endfor %}
+        {% endcomment %}
+    </table>
+    <input class="search" type="submit" value="Szukaj"/>
+</form>
+
+
+<script type="text/javascript" src="/site_media/filter_objects.js' %}"></script>

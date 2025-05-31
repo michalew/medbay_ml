@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{#{% load admin_static %}#}
+
+{% block content %}
+    <script type="text/javascript" src="/site_media/costs.js"></script>
+    <h1>Koszty</h1>
+    <table id="device_table" class="display">
+        <thead>
+        <tr>
+            <th></th>
+            <th>
+				#Nr
+			</th>
+			<th>
+				Nazwa
+			</th>
+			<th>
+				Rodzaj
+			</th>
+			<th>
+				Model
+			</th>
+			<th>
+				Producent
+			</th>
+			<th>
+				Nr seryjny
+			</th>
+			<th>
+                Nr inwentarzowy
+			</th>
+			<th>
+                Lokalizacja
+			</th>
+            <th>
+                Miejsce
+			</th>
+			<th>
+                Osoba odpowiedzialna
+			</th>
+			<th>
+                Nadzór techniczny
+			</th>
+			<th>
+                Status
+			</th>
+            <th title="Żeby wyszukać wpisz numer roku, miesiąca lub dnia, np. 2011 albo 3">
+                Data gwarancji
+			</th>
+        </thead>
+        </tr>
+        <tbody>
+        <body>
+
+        {% for device in devices %}
+            <tr>
+                <td style="width: 10px;"><input type="radio" name="device[]" value="{{ device.id }}"/></td>
+                <td>{{ device.id }}</td>
+                <td><a href='{{ device.get_absolute_url }}'>{{ device.name }}</a></td>
+                <td>{{ device.genre }}</td>
+                <td>{{ device.model }}</td>
+                <td>{{ device.make }}</td>
+                <td>{{ device.serial_number }}</td>
+                <td>{{ device.inventory_number }}</td>
+                <td>{{ device.location }}</td>
+                <td>{{ device.location_place }}</td>
+                <td>{{ device.person_responsible }}</td>
+                <td>{{ device.technical_supervisor }}</td>
+                <td>{{ device.get_status_display }}</td>
+                <td>{{ device.date_warranty }}</td>
+            </tr>
+        {% endfor %}
+        </body>
+        </tbody>
+    </table>
+    <script src="/site_media/jquery_datepicker/jquery-datepicker.js"></script>
+    <script src="/site_media/jquery_datepicker/jquery-ui-lng-pl.js"></script>
+{% endblock %}

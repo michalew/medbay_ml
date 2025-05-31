@@ -1,0 +1,21 @@
+{% if mileage and mileage.status == 2 %}
+<h1>Nie można zmienić danych licznika, który jest zakończony.</h1>
+{% else %}
+<div class="action-form">
+    <h1>{% if mileage %}Podgląd licznika{% else %}Nowy licznik{% endif %}</h1>
+<form action="" method="POST" id="add-mileage">{% csrf_token %}
+<table>
+    <tr><td>
+            <table>       
+                {% for f in form.visible_fields %}
+                <tr class="{{ f.css_classes }}"><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{% if 'date_' in f.name %}<input type="text" name="{{ f.name }}" value="{{ f.value|date:"Y-m-d"}}" id="{{ f.id_for_label }}">{% else %}{{ f }}{% endif %}
+                </td></tr>
+            {% endfor %}
+            </table>
+    </td><td>            
+            
+    <tr id="submit-row"><td colspan="2"><input type="submit" value="{% if mileage %}Zapisz{% else %}Dodaj{% endif %}"></td></tr>
+</table>
+</form>
+</div>
+{% endif %}

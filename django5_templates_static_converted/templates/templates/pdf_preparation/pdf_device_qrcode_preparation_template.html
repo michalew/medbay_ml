@@ -1,0 +1,56 @@
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+            }
+            div, span, p, td, h1, tr {
+                font-family: "DejaVu Sans", "Calibri", sans-serif;
+            }
+            .qr-code-container {
+                display: table;
+                position: relative; 
+                height: 100%;
+                width: 100%;
+            }
+            .qr-code-container > div {
+                display: table-cell;
+                vertical-align: middle;
+                padding-right: 0.2cm;
+                padding-left: 2.2cm;
+            }
+            .qr-code-container img {
+                position: absolute;
+                left: 0;
+                top: 12.5%;
+                height: 75%; 
+            }
+            .qr-code-container p {
+                font-size: 8px;
+            }
+            .qr-code-container:not(:last-child) {
+                page-break-after: always;
+            }
+        </style>
+
+    </head>
+
+    <body>
+{% block content %}
+        <div>
+            {% for code in codes %}
+            <div class="qr-code-container">  
+                <img src="data:image/png;base64, {{ code.1 }}">
+                <div>
+                    <p>{{ code.0 }}</p>
+                    <p><strong>{{ code.0.inventory_number|default:code.0.pk }}</strong></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endblock %}
+</body>
+</html>

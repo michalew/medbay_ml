@@ -1,0 +1,126 @@
+﻿﻿<html>
+    <head>
+        <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+        <style>
+            body {
+                font-family:"Arial",sans-serif;
+                margin-bottom:12.0pt;line-height:15.6pt
+            }
+        </style>
+    </head>
+
+    <body>
+        <p style="text-align: right;">
+            {{ now }}r.
+        </p>
+        <table border="0" cellpadding="0" cellspacing="0" style="width:100%">
+            <tbody>
+                <tr>
+                    <td style="width:50%; text-align: left;">
+                        <img style="width:100px; height:100px" src="{% if service.hospital.logo %}{{ service.hospital.logo.url }}{% endif %}"><br/>
+                        {{ service.hospital.name }}<br/>
+                        {{ service.hospital.street }} {{ service.hospital.street_number }}<br/>
+                        {{ service.hospital.postal_code }} {{ service.hospital.city }}<br/>
+                        telefon: {{ service.hospital.telephone }} fax: {{ service.hospital.fax }}<br/>
+                        email: {{ service.hospital.email }}<br/>
+                    </td>
+                    {% if service.sort == 1 %}
+                    <td style="width:50%; text-align: right;">
+                        {{ service.contractor.name }}<br />
+                        {{ service.contractor.street }} {{ service.contractor.street_number }}<br/>
+                        {{ service.contractor.postal_code }} {{ service.contractor.city }}<br/>
+                        {{ service.contractor.email }}<br/>
+                        NIP: {{ service.contractor.NIP }}
+                    </td>
+                {% endif %}
+                {% if service.sort == 0 %}
+                    <td style="width:50%; text-align: right;">
+                        {{ service.person_completing }}<br />
+                        {{ service.hospital.street }} {{ service.hospital.street_number }}<br/>
+                        {{ service.hospital.postal_code }} {{ service.hospital.city }}<br/>
+                        telefon: {{ service.person_completing.phone }}<br/>
+                        email: {{ service.person_completing.email }}<br/>
+                    </td>
+                {% endif %}
+                </tr>
+            </tbody>
+        </table>
+
+        <p style='text-align:center; font-weight: bold;'>
+            Zlecenie nr #{{ service.pk }}
+        </p>
+
+        <p>&nbsp;</p>
+
+        <p>
+            {{ service.hospital.name }} przesyła AKCEPTACJĘ OFERTY dotyczącej:
+        </p>
+
+        <p>&nbsp;</p>
+
+        <p>
+            * NAPRAWA zgodnie z zaleceniami producentów:
+        </p>
+
+        {% for device in devices %}
+        <p>
+            - Nazwa: {{ device.name }}, {{ device.make }}, {{ device.model }}, nr ser. {{ device.serial_number }}<br>
+            Lokalizacja: {{ device.location }},
+            ul. {{ device.location.street }}
+            {{ device.location.street_number }},
+            {{ device.location.postal_code }} {{ device.location.city }}
+            {% if device.location_place %}, Urządzenie znajduje się w {{ device.location_place }}{% endif %}
+        </p>
+        {% endfor %}
+
+        <p>&nbsp;</p>
+
+        {% if locations %}
+        <p>
+            Dane kontaktowe na oddziałach:
+        </p>
+
+        {% for location in locations %}
+        <p>
+            {{ location }}<br>
+            {{ location.person }}<br>
+            email: {{ location.person.email }}<br>
+            telefon: {{ location.person.phone }}
+        </p>
+        {% endfor %}
+        {% endif %}
+
+        <p>&nbsp;</p>
+
+        <p>
+            Dane kontaktowe do nadzoru technicznego:
+        </p>
+
+        {% for person in responsible %}
+        <p>
+            {{ person }}<br>
+            email: {{ person.email }}<br />
+            telefon: {{ person.phone }}
+        </p>
+        {% endfor %}
+
+        <p>&nbsp;</p>
+
+        <p style="font-weight: bold">
+           Prosimy o kontakt na podane dane w celu uzgodnienia terminu.
+        </p>
+
+        <p>
+           Wszelkie czynności serwisowe prosimy szczegółowo opisać w raportach serwisowych
+           z podaniem w szczególności: jednoznacznego określenia czy aparat jest sprawny
+           oraz&nbsp;<b>identyfikowalnego podpisu osoby wykonującej przegląd oraz daty
+           kolejnego przeglądu.</b>
+        </p>
+
+        <p style='text-align:right'>
+            Z poważaniem,<br />
+            {{ request.user.get_full_name }}<br />
+            <img style="width:100px; height:100px" src="{% if request.user.stamp %}{{ request.user.stamp.url }}{% endif %}">
+        </p>
+    </body>
+</html>

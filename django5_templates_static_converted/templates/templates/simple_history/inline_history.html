@@ -1,0 +1,35 @@
+<div class="inline-group">
+    <div class="tabular inline-related last-related">
+        <fieldset class="module">
+            <h2>Historia zmian</h2>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Data aktualizacji</th>
+                    <th>Autor</th>
+                    <th>Zmiany</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for record in obj.history.all %}
+                    <tr class="form-row row{% cycle '1' '2' %}">
+                        <td class="field-date">
+                            <p>{{ record.history_date }}</p>
+                        </td>
+                        <td class="field-get_name">
+                            <p>{% firstof record.history_user "SYSTEM" %}</p>
+                        </td>
+                        <td class="field-diff">
+                            {% for change in record.diff %}
+                                <p>{{ change }}</p>
+                                {% empty %}<p>Brak zmian.</p>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </fieldset>
+    </div>
+</div>

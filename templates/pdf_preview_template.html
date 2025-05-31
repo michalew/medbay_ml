@@ -1,0 +1,32 @@
+{% load static %}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--script type="text/javascript" src="{% static "jquery-1.7.1.min.js" %}"></script>-->
+    <script src="/site_media/ckeditor/ckeditor/ckeditor.js"></script>
+    <script src="/site_media/ckeditor/ckeditor-init.js"></script>
+</head>
+<form action="{% url "pdf-generate" %}" method="POST">{% csrf_token %}
+    {{ pdf_form.body_pdf }}
+    <input type="hidden" name="model" value="{{ model }}">
+    <input type="hidden" name="ids" value="{{ ids }}">
+    <br/>
+    <div style="text-align: right">
+        <input type="submit" name="save-pdf" value="Zapisz jako PDF"/>
+        {% if view.show_send_button %}
+        <input type="submit" name="send-pdf" value="Wyślij PDF"/>
+        {% endif %}
+        <input type="button" name="cancel-pdf" value="Anuluj"/>
+    </div>
+    <br/><br/>
+</form>
+
+<script>
+    $(document).ready(function(){
+       $("input[name='cancel-pdf']").click(function(){
+            $("a#fancybox-close")[0].click();
+       });
+});
+</script>
+
+

@@ -1,0 +1,97 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+        .break_before { page-break-before: always; }
+        .break_after { page-break-after: always; }
+    </style>
+</head>
+<body>
+{% block content %}
+    {% for device in devices %}
+        <div class="{% if not forloop.last %}break_after{% endif %}">
+            <div style="text-align: center;margin-top: 50%;font-size: 32px; margin-bottom:200px;">
+                <b>PASZPORT<br/> TECHNICZNY</b>
+            </div>
+            <div>
+                <b>Nazwa urządzenia: {{ device.name }}</b><br/>
+                <b>Nr inwentarzowy: {% if device.inventory_number %}{{ device.inventory_number }}{% else %}BRAK{% endif %}</b><br/>
+            </div>
+            <div class="break_before">
+                <h2><b>Karta techniczna</b></h2>
+            </div>
+            <div style="font-size: 16px">
+                Nazwa: <b>{% if device.name %}{{ device.name }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Producent: <b>{% if device.make %}{{ device.make }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Model: <b>{% if device.model %}{{ device.model }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Numer seryjny: <b>{% if device.serial_number %}{{ device.serial_number }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Numer inwentarzowy: <b>{% if device.inventory_number %}{{ device.inventory_number }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Data produkcji: <b>{% if device.date_manufactured %}{{ device.date_manufactured }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Data zakupu: <b>{% if device.date_bought %}{{ device.date_bought }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Data upływu gwarancji: <b>{% if device.date_warranty %}{{ device.date_warranty }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Lokalizacja: <b>{% if device.location %}{{ device.location }}{% endif %}{% if device.location_place %} {{ device.location_place }}{% endif %}</b>
+                <br/>
+                <br/>
+                Osoba odpowiedzialna: <b>{% if device.person_responsible %}{{ device.person_responsible }}{% else %}-{% endif %}</b>
+                <br/>
+                <br/>
+                Firma serwisująca: <b> {% if device.contractor %}{{ device.contractor }}{% else %}(NIE WYBRANO){% endif %}</b>
+                <br/>
+                <br/>
+                Uwagi:<br/>
+                {% if device.remarks %}{{ device.remarks }}{% else %}-{% endif %}
+                <br/>
+            </div>
+            {% for item in device.passport_entries %}
+                {% if forloop.first %}
+                    <div class="break_before">
+                        <table border="1" cellpadding="0" cellspacing="0" style="width:100%">
+                            <tbody>
+                                <tr>
+                                    <td style="width:15%; text-align: center;font-size:16px">
+                                        <b>Data</b>
+                                    </td>
+                                    <td style="width:85%; text-align: justify; padding: 10px;font-size:16px">
+                                        <b>Wpis do paszportu</b>
+                                    </td>
+                                </tr>
+                {% endif %}
+                                <tr>
+                                    <td style="width:15%; text-align: center;">
+                                        {{ item.added_date|date:"d.m.Y" }}
+                                    </td>
+                                    <td style="width:85%; text-align: justify; padding: 10px;">
+                                        {{ item.content|linebreaks }}
+                                    </td>
+                                </tr>
+
+                {% if forloop.last %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+        </div>
+    {% endfor %}
+{% endblock %}
+</body>
+</html>
+
+

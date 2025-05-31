@@ -1,0 +1,58 @@
+<div class="action-form">
+    <h1>
+        Podgląd zgłoszenia <!--<div style="left: 10px; position: absolute;" class="print-device">Drukuj</div>-->
+    </h1>
+    
+    <h2>Urządzenia</h2>
+    <table id="related_devices">
+        <tbody>
+            <tr>
+                <td>Id</td>
+                <td>Nazwa</td>
+                <td>Producent</td>
+                <td>Model</td>
+                <td>Nr seryjny</td>
+                <td>Nr inwentarzowy</td>
+                <td>Lokalizacja</td>
+            </tr>
+            {% for current_related_object in ticket.device.all %}
+            <input type="hidden" name="device" value="{{ current_related_object.pk }}">
+            <tr class="current_related_objects_device">
+                <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                <td>
+                    <a href="{{ current_related_object.get_absolute_url }}">{{ current_related_object }}</a>
+                </td>
+                <td>{{ current_related_object.make }}</td>
+                <td>{{ current_related_object.model }}</td>
+                <td>{{ current_related_object.serial_number }}</td>
+                <td>{{ current_related_object.inventory_number }}</td>
+                <td>{{ current_related_object.location }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <table>
+        <tr><td>
+                <table>       
+                    <tr><th>Rodzaj zgłoszenia</th><td>{{ ticket.get_sort_name }}</td></tr>
+                    <tr><th>Priorytet</th><td>{{ ticket.get_priority }}</td></tr>
+                    <tr><th>Cykliczny?</th><td>{{ ticket.cyclic|yesno:"Tak,Nie" }}</td></tr>
+                    <tr><th>Opis</th><td>{{ ticket.description }}</td></tr>
+                    <tr><th>Status</th><td>{{ ticket.get_status_name }}</td></tr>
+                </table>
+        </td>{% comment %}<td>
+                <table>       
+                    <tr><th>Centrum Kosztowe</th><td>{{ device.cost_centre|default:"BRAK" }}</td></tr>
+                    <tr><th>Lokalizacja</th><td>{{ device.location|default:"BRAK" }}</td></tr>
+                    <tr><th>Miejsce</th><td>{{ device.location_place|default:"BRAK" }}</td></tr>
+                    <tr><th>Osoba odpowiedzialna</th><td>{{ device.person_responsible.get_full_name|default:"BRAK" }}</td></tr>
+                    <tr><th>Nadzór techniczny</th><td>{{ device.technical_supervisor.get_full_name|default:"BRAK" }}</td></tr>
+                    <tr><th>Firma serwisująca</th><td>{{ device.contractor|default:"BRAK" }}</td></tr>
+                    <tr><th>Uwagi</th><td>{{ device.remarks|default:"BRAK" }}</td></tr>
+                    <tr><th>Status</th><td>{{ device.get_status_name }}</td></tr>
+                </table>
+
+        </td>{% endcomment %}</tr>
+    </table>
+</div>

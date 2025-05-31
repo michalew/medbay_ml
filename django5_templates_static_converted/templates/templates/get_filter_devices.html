@@ -1,0 +1,55 @@
+<script type="text/javascript" src="/site_media/filter_objects.js' %}"></script>
+
+{% block content %}
+<table id="filter-devices-table" style="width:100%;" class="display" >
+	<thead>
+		<tr>
+			<th width=1%><input type="checkbox" class="check_all" value=""></th>
+			<th>
+				Lp.
+			</th>
+			<th>
+				Nazwa
+			</th>
+			<th>
+				Rodzaj
+			</th>
+			<th>
+				Model
+			</th>
+			<th>
+				Producent
+			</th>
+			<th>
+				Nr seryjny
+			</th>
+			<th>
+                Nr inwentarzowy
+			</th>
+			<th>
+                Lokalizacja
+			</th>
+            <th>
+                Miejsce
+			</th>
+			<th>
+                Osoba odpowiedzialna
+			</th>
+			<th>
+                Nadzór techniczny
+			</th>
+			<th>
+                Status
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+
+	</tbody>
+</table>
+<script>
+$(document).ready(function(){
+    load_filter_devices("device");
+});
+</script>
+        {% endblock %}

@@ -1,0 +1,25 @@
+{% extends "datatables/base.txt" %}
+
+{% block content %}
+{% for device in querySet %}
+{
+    "id": "{{device.id}}",
+    "lp": "{{device.id}}",
+    "name": "{{device.name|default:"-"}}",
+    "genre": "{{device.genre|default:"-"}}",
+    "model": "{{device.model|default:"-"}}",
+    "make": "{{device.make|default:"-"}}",
+    "serial_number": "{{device.serial_number|default:"-"}}",
+    "inventory_number": "{{device.inventory_number|default:"-"}}",
+    "location": "{{device.location.name|default:"-"}}",
+    "location_place": "{{device.location_place|default:"-"}}",
+    "person_responsible": "{{device.person_responsible|default:"-"}}",
+    "technical_supervisor": "{{device.technical_supervisor|default:"-"}}",
+    "date_service": "{{device.date_service|date:'Y-m-d'|default:"-"}}",
+    "date_next_service": "{{device.date_next_service|date:'Y-m-d'|default:"-"}}",
+    "status": "{{device.get_status_display|default:"-"}}",
+    "has_service": "{{device.has_service|default:"-"}}",
+    "date_warranty": "{{device.date_warranty|date:'Y-m-d'|default:"-"}}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endblock %}

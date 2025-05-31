@@ -1,0 +1,53 @@
+<div class="action-form">
+    Wybierz pola, <br/>które chcesz eksportować:<br/><br/>
+
+<form action="{% url "xls-generate" %}" method="{% if model == 'InspectionPlan' %}POST{% else %}GET{% endif %}">{% csrf_token %}
+    <input type="hidden" name="model" value="{{ model }}">
+
+
+    <table>
+
+    <div><a class="check_all">Zaznacz wszystkie</a></div>
+    <div><a class="uncheck_all">Odznacz wszystkie</a></div>
+
+    {% if model == 'InspectionPlan' %}
+        <input type="hidden" name="titles" value="{{ titles }}">
+        <input type="hidden" name="ids" value="{{ rows }}">
+        {% for title in columns %}
+            {% if title %}
+                <tr>
+                    <td style="text-align: left">{{ title }}:</td>
+                    <td><input type="checkbox" name="exported_columns" value="{{ title }}"/></td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <input type="hidden" name="ids" value="{{ ids }}">
+        {% for fields in model_fields %}
+            <tr>
+                <td style="text-align: left">{{ fields.verbose_name }}:</td>
+                <td><input type="checkbox" name="exported_columns" value="{{ fields.name }}"/></td>
+            </tr>
+        {% endfor %}
+    {% endif %}
+    <tr id="submit-row"><td colspan="2"><input style="width: 100%" type="submit" value="Eksportuj"/></td></tr>
+    </table>
+
+</form>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $(".check_all").click(function(){
+           $("input[name='exported_columns']").each(function(){
+               $(this).attr('checked', 'checked');
+           });
+        });
+        $(".uncheck_all").click(function(){
+           $("input[name='exported_columns']").each(function(){
+               $(this).attr('checked', false);
+           });
+        });
+    });
+
+</script>

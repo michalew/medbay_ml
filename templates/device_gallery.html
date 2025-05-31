@@ -1,0 +1,18 @@
+{% if images %}
+    {% for image in images %}
+        <div class="gallery_image">
+            <p><small>Dodano {{ image.added_date|date:"d-m-Y" }} ({{ image.added_user.first_name }} {{ image.added_user.last_name }})</small></p>
+            <a class="open_gallery" rel="group" href="{{ image.image.url }}">
+                <img title="{% if image.description %}{{ image.description|truncatewords:20 }}{% else %}brak opisu{% endif %}"
+                     src="{{ image.image.url }}" alt="" />
+            </a>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+<script>
+    $(document).ready(function(){
+        $(".open_gallery").fancybox();
+    });
+</script>

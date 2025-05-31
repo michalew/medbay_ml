@@ -1,0 +1,23 @@
+{% load sanitize_tags %}
+
+{% comment %}
+    HACK: trzeba się tym kiedyś zająć na poważnie
+{% endcomment %}
+
+<dl id="comments">
+  {% for comment in comment_list reversed %}
+    <dt id="c{{ comment.id }}">
+    {{ comment.name }}<br />
+    <span>{{ comment.submit_date }}</span>
+    </dt>
+    <dd>
+        {% if "Dodano dokument/załącznik" in comment.comment and not perms.cmms.view_document %}
+        <p>
+            {{ comment.comment|sanitize|safe|striptags|slice:"-75" }}
+        </p>
+        {% else %}
+        <p>{{ comment.comment|sanitize|safe }}</p>
+        {% endif %}
+    </dd>
+  {% endfor %}
+</dl>

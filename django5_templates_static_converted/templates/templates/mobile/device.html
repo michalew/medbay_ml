@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div data-device-id="{{ object.id }}" class="print-passport">Drukuj paszport</div>
+<div class="device-header" style="text-align: center">
+    <h1>{{ object }}</h1>
+    <h2>{{ object.model }}</h2>
+</div>
+
+<style>
+    .module h2 {
+        line-height: 32px;
+        padding: 0;
+    }
+    .module tbody, .module table {
+        width: 100%;
+    }
+    .module h2 a {
+        padding: 0 10px;
+        display: block;
+    }
+    #device-info span {
+        display: block;
+    }
+    #device-info span:first-child {
+        padding-top: 0px !important;
+    }
+    #device-info span:nth-child(odd) {
+        color: #333; 
+        padding: 10px 0px;
+        font-weight: bold;
+    }
+    #device-info span:nth-child(even) {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+    #device-info span:last-child { 
+        padding-bottom: 0px !important;
+        border-bottom: none !important;
+    }
+</style>
+
+<div class="module">
+    <table>
+        <h2 id="device-info_title">
+            <a href="javascript:toggleTable('device-info')" class="section">Informacje</a>
+        </h2>
+
+        <tbody id="device-info">
+        <td>
+            <span>Nazwa</span>
+            <span>{{ device.name }}</span>
+            <span>Rodzaj</span>
+            <span>{{ device.genre }}</span>
+            <span>Model</span>
+            <span>{{ device.model }}</span>
+            <span>Producent</span>
+            <span>{{ device.make }}</span>
+        
+            <span>Nr seryjny</span>
+            <span>{{ device.serial_number|default:"BRAK" }}</span>
+            <span>Nr inwentarzowy</span>
+            <span>{{ device.inventory_number|default:"BRAK" }}</span>
+            <span>Lokalizacja</span>
+            <span>{{ device.location|default:"BRAK" }}</span>
+            <span>Miejsce</span>
+            <span>{{ device.location_place|default:"BRAK" }}</span>
+            <span>Osoba odpowiedzialna</span>
+            <span>{{ device.person_responsible|default:"BRAK" }}</span>
+            <span>Nadzór techniczny</span>
+            <span>{{ device.technical_supervisor|default:"BRAK" }}</span>    
+            <span>Data przeglądu</span>
+            <span>{{ device.date_service|default:"BRAK" }}</span>
+            <span>Następny przegląd</span>
+            <span>{{ device.date_next_service|default:"BRAK" }}</span>
+            <span>Status</span>
+            <span>{{ device.get_status_name }}</span>
+            <span>Data gwarancji</span>
+            <span>{{ device.date_warranty|date:"Y-m-d" }}</span>    
+        </td>
+        </tbody>
+    </table>
+</div>
+
+<div class="module">
+    <table>
+        <h2 id="mileage-preview_title" class="collapsed">
+            <a href="javascript:toggleTable('mileage-preview')" class="section">Liczniki</a>
+        </h2>
+
+        <tbody id="mileage-preview" style="display: none;">
+            <tr>
+                <th>Nazwa</th><th>Status</th><th>Wartość</th>
+            </tr>
+            {% for mileage in device.mileage_set.all %}
+            <tr>
+                <td>{{ mileage.name }}</td>
+                <td>{{ mileage.get_status_name }}</td>
+                <td>{{ mileage.state }}/{{ mileage.state_max }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="empty" colspan=3>Brak liczników</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="module">
+    <table>
+        <h2 id="document-preview_title" class="collapsed">
+            <a href="javascript:toggleTable('document-preview')" class="section">Dokumenty</a>
+        </h2>
+
+        <tbody id="document-preview" style="display: none;">
+            {% for d in documents %}
+            <tr>
+                <td>
+                    {% if d.scan %}
+                    <div class="document-download-btn">
+                        <a href="{% url "download_document" d.pk %}" target="_blank">
+                            <i class="fa fa-download fa-fw"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                    <h4>{{ d }}</h4>
+                    <dl>
+                    {% if d.description %}
+                    <dd>{{ d.description }}</dd>
+                    {% endif %}
+                    {% if d.get_sort_name %}
+                    <dt>Rodzaj</dt><dd>{{ d.get_sort_name }}</dd>
+                    {% endif %}
+                    <dt>Data</dt><dd>{{ d.date_document }} (dodano {{ d.timestamp }})</dd>
+                    </dl>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="empty" colspan=3>Brak dokumentów</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(".print-passport").on("click", function() {
+        generate_pdf_directly("passport", $(this).attr("data-device-id"));
+    });
+</script>
+{% endblock %}

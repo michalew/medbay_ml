@@ -1,0 +1,97 @@
+<h2>Filtr zleceń</h2>
+<form id="advanced_service_filter_form" action="." method="POST">{% csrf_token %}
+    {{ advanced_filter_form.advanced_service_filter }}
+    <table id="advanced_filter_table">
+        <tr id="related_tickets" class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.ticket.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.ticket_operator }}</td>
+            <td class="advanced_filter_td_field last"   >
+                {{ advanced_filter_form.ticket }}
+                <button class="filter-objects" data-objects_name='ticket' data-is_list='true'
+                     data-current_list_name='document'>
+                Znajdź
+                </button>
+            </td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_ticket" colspan="3"></td></tr>
+        <tr class="related_tickets_title">
+            <td colspan="3" style='text-align: left;'>Wybrane rekordy:</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="16" style="width: 475px">
+                <table>
+                    <tr id="related_tickets_table_header">
+                        <td class='related_objects_id'>Id</td><td>Data</td><td>Rodzaj</td><td>Opis</td><td>Osoba zgłaszająca</td><td>Status</td><td>Osoba zamykająca</td><td>Data zamknięcia</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.hospital.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.hospital_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.hospital }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_hospital" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.sort.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.sort_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.sort }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_sort" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.contractor.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.contractor_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.contractor }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_contractor" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.date_add_from.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='date_add'>{{ advanced_filter_form.date_add_operator }}</td>
+            <td colspan="3" class="advanced_filter_td_field date_add_from_to last">{{ advanced_filter_form.date_add_from }} - {{ advanced_filter_form.date_add_to }}</td>
+            <td class="advanced_filter_td_field date_add last">{{ advanced_filter_form.date_add }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_date_add" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.status.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.status_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.status }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_status" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.person_creating.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.person_creating_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.person_creating }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_person_creating" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.person_assigned.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.person_assigned_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.person_assigned }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_person_assigned" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.person_completing.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.person_completing_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.person_completing }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_person_completing" colspan="3"></td></tr>
+
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.description.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.description_operator }}</td>
+            <td colspan="3" class="advanced_filter_td_text_field last">{{ advanced_filter_form.description }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_description" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.comment.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.comment_operator }}</td>
+            <td colspan="3" class="advanced_filter_td_text_field last">{{ advanced_filter_form.comment }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_comment" colspan="3"></td></tr>
+    </table>
+    <input class="search" type="submit" value="Szukaj"/>
+</form>
+
+
+<script type="text/javascript" src="/site_media/filter_objects.js' %}"></script>

@@ -1,0 +1,55 @@
+<div class="action-form">
+    <h1>
+        Podgląd zlecenia <div style="left: 10px; position: absolute;" class="print-service">Drukuj</div>
+    </h1>
+    {% if service.ticket.all %}
+    <div class="warning-info">
+        <p>Zlecenie obejmuje poniższe zgłoszenia:</p>
+        <ul>
+        {% for t in service.ticket.all %}
+        <li id="ticket{{ t.pk }}"><a target="_blank" href="/a/cmms/ticket/{{ t.pk }}/">{{ t }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <table>
+        <tbody>
+            <tr>
+                <th>Rodzaj</th>
+                <td>{{ service.get_sort_name }}</td>
+            </tr>
+        
+            <tr>
+                <th>Osoba przypisana</th>
+                <td>{{ service.person_assigned }}</td>
+            </tr>
+
+            <tr>
+                <th>Opis</th>
+                <td>{{ service.description }}</td>
+            </tr>
+
+            <tr>
+                <th>Status</th>
+                <td>{{ service.get_status_name }}</td>
+            </tr>
+
+            <tr>
+                <th>Firma serwisująca</th>
+                <td>{{ service.contractor }}</td>
+            </tr>
+
+            <tr>
+                <th>Odbiorca zlecenia</th>
+                <td>{% firstof service.person_completing service.contractor %}</td>
+            </tr>
+
+            <tr>
+                <th>Szpital</th>
+                <td>{{ service.hospital }}</td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>

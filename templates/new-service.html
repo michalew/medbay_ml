@@ -1,0 +1,27 @@
+<div class="action-form">
+    <h1>Nowe zlecenie</h1>
+    {% if tickets %}<div class="warning-info">
+        <p>{% if service %}Zlecenie obejmuje poniższe zgłoszenia{% else %}Dodajesz zlecenie dla poniższych zgłoszeń{% endif %}:</p>
+    <ul>
+    {% for t in tickets %}
+    <li id="ticket{{ t.pk }}"><a target="_blank" href="/a/cmms/ticket/{{ t.pk }}/">{{ t }}</a></li>
+    {% endfor %}
+    </ul>
+    </div>{% endif %}
+<form action="" method="POST" id="add-service">{% csrf_token %}
+<table>
+{# form.as_table #}
+{% for f in form %}
+{% if user.pielegniarka %}
+{% if f.name not in "cyclic status" %}<tr class="{{ f.css_classes }}"><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{{ f }}</td></tr>{% endif %}
+{% ifequal f.name "status" %}<input name="{{ f.name }}" type="hidden" value="0" />{% endifequal %}
+{% else %}
+<tr class="{{ f.css_classes }}"><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{{ f }}
+        {% ifequal f.name 'contractor' %}<a href="/admin/crm/contractor/add/" class="add-another" id="add_id_contractor" onclick="return showAddAnotherPopup(this);"> <img src="/site_media/admin/img/icon_addlink.gif" width="10" height="10" alt="Dodaj kolejny"></a>{% endifequal %}
+    </td></tr>
+{% endif %}
+{% endfor %}
+<tr id="submit-row"><td colspan="2"><input type="submit" value="{% if service %}Zapisz{% else %}Dodaj{% endif %}"></td></tr>
+</table>
+</form>
+</div>

@@ -1,0 +1,16 @@
+{% if passport_entries %}
+<table style="width: 100%;">
+    <thead>
+        <th style="width: 140px;">Data</th>
+        <th>Treść</th>
+    </thead>
+    {% for entry in passport_entries %}
+        <tr>
+            <td>{{ entry.added_date }}</td>
+            <td>{{ entry.content|linebreaks }}</td>
+        </tr>
+    {% endfor %}
+</table>
+{% else %}
+    Brak wpisów do paszportu
+{% endif %}

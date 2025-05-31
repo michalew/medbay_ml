@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div class="yui-g">
+        {% if add_ticket %}
+        <script>
+            blink = true;
+        </script>
+        {% endif %}
+        {% if new_device %}
+        <script>
+            new_device = true;
+        </script>
+        {% endif %}
+        {% if device_id %}
+        <script>
+            device_id = {{ device_id }};
+        </script>
+        {% endif %}
+        {% if devices_group_id %}
+        <script>
+            devices_group_id = {{ devices_group_id }};
+        </script>
+        {% endif %}
+        {% include 'inspections/inspection_headlines.html' %}
+	</div>
+ <script>
+load_inspections();
+ </script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "admin/dane/change_form.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+{% if perms.guardian.change_userobjectpermission or perms.guardian.change_groupobjectpermission %}
+<li><a href="permissions/" class="permissionslink">Uprawnienia obiektu</a></li>
+{% endif %}
+{{ block.super }}
+{% endblock %}

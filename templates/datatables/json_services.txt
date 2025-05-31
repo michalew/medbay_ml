@@ -1,0 +1,19 @@
+{% extends "datatables/base.txt" %}
+
+{% block content %}
+{% for service in querySet %}
+{
+    "id": "{{service.id}}",
+	"lp": "{{service.id}}",
+	"ticket": "{{service.get_tickets|default:"-"}}",
+	"sort": "{{service.get_sort_name|default:"-"}}",
+	"person_assigned": "{{service.person_assigned|default:"-"}}",
+	"description": "{{service.description|escapejs|default:"-"}}",
+	"status": "{{service.get_status_name|default:"-"}}",
+	"person_creating": "{{service.person_creating|default:"-"}}",
+	"contractor": "{{service.contractor|default:"-"}}",
+	"person_completing": "{{service.person_completing|default:"-"}}",
+	"timestamp": "{{service.timestamp|date:'Y-m-d'|default:"-"}}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endblock %}

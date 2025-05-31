@@ -1,0 +1,41 @@
+{% load comments %}
+
+<div class="action-form">
+    <h1>{% if ticket %}Edycja zgłoszenia{% else %}Nowe zgłoszenie{% endif %}</h1>
+    {% if ticket %}<div class="warning-info">
+    <p>Te zgłoszenie obejmuje poniższe urządzenia:</p>
+    <ul>
+    {% for d in devices %}
+    <li id="device{{ d.pk }}">{{ d }}</li>
+    {% endfor %}
+    </ul>
+    </div>{% endif %}
+<form action="" method="POST" id="add-ticket">{% csrf_token %}
+<table>
+{# form.as_table #}
+{% for f in form %}
+{% if user.pielegniarka %}
+{% if f.name not in "cyclic status" %}<tr><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{{ f }}</td></tr>{% endif %}
+{% ifequal f.name "status" %}<input name="{{ f.name }}" type="hidden" value="0" />{% endifequal %}
+{% else %}
+<tr><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{{ f }}</td></tr>
+{% endif %}
+{% endfor %}
+{% if ticket %}
+{% get_comment_list for ticket as comment_list %}
+<tr id="comments"><th>Komentarze</th><td><textarea id="id_comment" rows="4" cols="40" name="comment" placeholder="Dodaj komentarz..."></textarea>
+<ul>
+{% if comment_list %}
+{% for c in comment_list reversed %}
+<li><p>{{ c.comment }}<span>{{ c.user }}, {{ c.submit_date }}</span></p></li>
+{% endfor %}
+{% endif %}
+</ul>
+
+</td></tr>
+{% endif %}
+<tr id="submit-row"><td colspan="2"><input type="submit" value="{% if ticket %}Zapisz{% else %}Dodaj{% endif %}"></td></tr>
+</table>
+<input type="hidden" name="devices_id_list" value="{% for d in devices %}{{ d.pk }}{% if not forloop.last %},{% endif %}{% endfor %}" />
+</form>
+</div>

@@ -1,0 +1,135 @@
+<h2>Filtr faktur</h2>
+<form id="advanced_invoice_filter_form" action="." method="POST" style="width: 500px;">{% csrf_token %}
+    {{ advanced_filter_form.advanced_invoice_filter }}
+    <table id="advanced_filter_table">
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.number.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.number_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.number }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_priority" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.name.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.name_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.name }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_name" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.date.label }}:</td>
+            <td class="advanced_filter_td_operator" data-field_name='date'>{{ advanced_filter_form.date_operator }}</td>
+            <td colspan="2" class="advanced_filter_td_field date_from_to last">{{ advanced_filter_form.date_from }} - {{ advanced_filter_form.date_to }}</td>
+            <td class="advanced_filter_td_field date last">{{ advanced_filter_form.date }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_date" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.net_value.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.net_value_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.net_value }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_net_value" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.gross_value.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.gross_value_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.gross_value }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_gross_value" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.status.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.status_operator }}</td>
+            <td class="advanced_filter_td_field last">{{ advanced_filter_form.status }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_status" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.contractor.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.contractor_operator }}</td>
+            <td class="advanced_filter_td_field last"   >{{ advanced_filter_form.contractor }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_contractor" colspan="3"></td></tr>
+        <tr class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.hospital.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.hospital_operator }}</td>
+            <td class="advanced_filter_td_field last"   >{{ advanced_filter_form.hospital }}</td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_contractor" colspan="3"></td></tr>
+        <tr id="related_services" class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.service.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.service_operator }}</td>
+            <td class="advanced_filter_td_field last"   >
+                {{ advanced_filter_form.service }}
+                <button class="filter-objects" data-objects_name='service' data-is_list='true'
+                     data-current_list_name='document'>
+                Znajdź
+                </button>
+            </td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_service" colspan="3"></td></tr>
+        <tr class="related_services_title">
+            <td colspan="3" style='text-align: left;'>Wybrane rekordy:</td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="16" style="width: 475px">
+                <table>
+                    <tr id="related_services_table_header">
+                        <td class='related_objects_id'>Id</td><td>Opis zgłoszenia</td><td>Rodzaj</td><td>Opis</td><td>Status</td><td>Osoba zlecająca</td><td>Firma serwisująca</td><td>Odbiorca zlecenia</td><td>Data utowrzenia</td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+
+        <tr id="related_tickets" class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.ticket.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.ticket_operator }}</td>
+            <td class="advanced_filter_td_field last"   >
+                {{ advanced_filter_form.ticket }}
+                <button class="filter-objects" data-objects_name='ticket' data-is_list='true'
+                     data-current_list_name='document'>
+                Znajdź
+                </button>
+            </td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_ticket" colspan="3"></td></tr>
+        <tr class="related_tickets_title">
+            <td colspan="3" style='text-align: left;'>Wybrane rekordy:</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="16" style="width: 475px">
+                <table>
+                    <tr id="related_tickets_table_header">
+                        <td class='related_objects_id'>Id</td><td>Data</td><td>Rodzaj</td><td>Opis</td><td>Osoba zgłaszająca</td><td>Status</td><td>Osoba zamykająca</td><td>Data zamknięcia</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr id="related_devices" class="advanced_filter_tr">
+            <td class="advanced_filter_td_label">{{ advanced_filter_form.device.label }}:</td>
+            <td class="advanced_filter_td_operator">{{ advanced_filter_form.device_operator }}</td>
+            <td class="advanced_filter_td_field last"   >
+                {{ advanced_filter_form.device }}
+                <button class="filter-objects" data-objects_name='device' data-is_list='true'
+                     data-current_list_name='document'>
+                Znajdź
+                </button>
+            </td>
+        </tr>
+        <tr class="errors_advanced_search_fields"><td class="errors_device" colspan="3"></td></tr>
+        <tr class="related_devices_title">
+            <td colspan="3" style='text-align: left;'>Wybrane rekordy:</td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+            <td colspan="10" style="width: 475px">
+                <table>
+                    <tr id="related_devices_table_header">
+                        <td class='related_objects_id'>Id</td><td>Nr inw.</td><td style="width:155px !important;">Nazwa</td><td>Producent</td><td>Lokalizacja</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+        </tr>
+    </table>
+    <input class="search" type="submit" value="Szukaj"/>
+</form>
+
+
+<script type="text/javascript" src="/site_media/filter_objects.js' %}"></script>

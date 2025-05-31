@@ -1,0 +1,37 @@
+<h1>Licznik:</h1>
+
+<ul>
+    <li>
+        <p><strong>Status:</strong> {{ mileage.get_status_name }}</p>
+    </li>
+    <li>
+        <p><strong>Wartość:</strong> {{ mileage.state }} [{{ mileage.unit.unit }}]</p>
+    </li>
+    <li>
+        <p><strong>Wartość graniczna:</strong> {{ mileage.state_warning }}</p>
+    </li>
+    <li>
+        <p><strong>Wartość końcowa:</strong> {{ mileage.state_max }}</p>
+    </li>
+<ul>
+    
+<h2>Historia</h2>
+<table>
+    <tr>
+        <td>Data</td>
+        <td>Imię i nazwisko</td>
+        <td>Wartość</td>
+        <td>Procent war. granicznej</td>
+        <td>Uwagi</td>
+    </tr>
+{% for item in history %}
+    <tr>
+        <td>{{ item.history_date }}</td>
+        <td>{{ item.history_user }}</td>
+        <td>{{ item.state }}</td>
+        <td>{% widthratio item.state item.state_max 100 %}%</td>
+        <td>{{ item.remarks }}</td>
+    </tr>
+{% endfor %}
+</table>
+</ul>

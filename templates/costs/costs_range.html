@@ -1,0 +1,25 @@
+<div id="range">
+    <link rel="stylesheet" href="/site_media/jquery_datepicker/jquery-datepicker.css">
+
+    <h1>Koszty używania urządzenia: {{ device.name }}</h1>
+
+    <form class="form-inline" id="costs_range">
+        {% csrf_token %}
+        {{ form.device_id }}
+        <label class="control-label" for="id_start_date">Od</label>
+        {{ form.start_date }}
+        {{ form.start_date.errors }}
+
+        <label class="control-label" for="id_end_date">Do</label>
+        {{ form.end_date }}
+        {{ form.end_date.errors }}
+        <button class="btn btn-primary btn-small">Sprawdź</button>
+    </form>
+
+    {% if net_cost != None and gross_cost != None %}
+        <p>Koszty używania urządzenia w tym okresie wynoszą: {{ net_cost }} zł netto, {{ gross_cost }} zł brutto</p>
+    {% endif %}
+
+    <script src="/site_media/costs_range.js"></script>
+
+</div>

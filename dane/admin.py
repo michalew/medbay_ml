@@ -171,9 +171,9 @@ class DevicePassportInline(admin.TabularInline):
     ordering = ("added_date", )
     fields = ("added_date", "content", )
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         original_perm = super(DevicePassportInline,
-                              self).has_add_permission(request)
+                              self).has_add_permission(request,obj)
         return request.user.has_perm('cmms.add_devicepassport') and original_perm
 
 
@@ -2623,12 +2623,12 @@ dane_admin.register(Unit, UnitAdmin)
 dane_admin.register(DevicePassport, DevicePassportAdmin)
 dane_admin.register(Device, DeviceAdmin)
 
-# dane_admin.register(Genre, GenreAdmin)
-# dane_admin.register(Make, MakeAdmin)
-# dane_admin.register(Mileage, MileageAdmin)
-# dane_admin.register(Contractor, ContractorAdmin)
-# dane_admin.register(CostCentre, CostCentreAdmin)
-# dane_admin.register(Invoice, InvoiceAdmin)
+dane_admin.register(Genre, GenreAdmin)
+dane_admin.register(Make, MakeAdmin)
+#dane_admin.register(Mileage, MileageAdmin)
+#dane_admin.register(Contractor, ContractorAdmin)
+#dane_admin.register(CostCentre, CostCentreAdmin)
+#dane_admin.register(Invoice, InvoiceAdmin)
 # dane_admin.register(Location, LocationAdmin)
 # dane_admin.register(Ticket, TicketAdmin)
 # dane_admin.register(Service, ServiceAdmin)

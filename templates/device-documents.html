@@ -1,0 +1,25 @@
+{% if documents %}
+<ul>
+    {% for d in documents %}
+    <li>
+        <h2>{{ d }}</h2>
+        <dl>
+            <dt>skan</dt>
+            {% if d.scan %}
+                <dd><a href="{% url "download_document" d.pk %}" target="_blank">{{ d }}</a></dd>
+            {% else %}
+                <dd>niedostępny</dd>
+            {% endif %}
+            <dt>rodzaj</dt><dd>{{ d.get_sort_name }}</dd>
+            <dt>dodano</dt><dd>{{ d.timestamp }}</dd>
+            <dt>data dokumentu</dt><dd>{{ d.date_document }}</dd>
+            <dt>opis</dt><dd><i>{{ d.description }}</i></dd>
+        </dl>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Brak dokumentów</p>
+{% endif %}
+
+{% if perms.cmms.add_document %}<a style="position: absolute;top: 2.4em;right: 1em; font-weight: bold; line-height: 16px;" href="/a/cmms/document/add/?device_id={{ device_id }}" class="add-another" id="add_id_Document_ticket-0-document" onclick="return showAddAnotherPopup(this);"> <img src="/site_media/admin/img/icon_addlink.gif" width="10" height="10" style="margin-right: 10px;" alt="Dodaj kolejny">Dodaj dokument</a>{% endif %}

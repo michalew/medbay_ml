@@ -1,0 +1,63 @@
+{% block content %}
+    <form id='inspections-form' action="/pdf-generate-directly/" method="post">{% csrf_token %}
+        <input type="hidden" id='id_inspection_pdf_model' name="model">
+        <input type="hidden" id='id_inspection_pdf_ids' name="ids">
+        <input type="hidden" id='id_inspection_pdf_titles' name="titles">
+    </form>
+    <h1 style="text-align: center">Plan przeglądów/konserwacji</h1>
+    <table id="inspections-table" style="width:100%;" class="display" >
+        <thead>
+            <tr>
+                <th width=1%><input type="checkbox" id="selall" value=""></th>
+                <th>
+                    ID przeglądu
+                </th>
+                <th>
+                    ID urządzenia
+                </th>
+                <th>
+                    Nazwa urz.
+                </th>
+                <th>
+                    Producent
+                </th>
+                <th>
+                    Model
+                </th>
+                <th>
+                    Nr seryjny
+                </th>
+                <th>
+                    Nr inw.
+                </th>
+                <th>
+                    Lokalizacja
+                </th>
+                <th>
+                    ID zgłoszenia
+                </th>
+                <th>
+                    Rodzaj czynności cyklicznej
+                </th>
+                <th>
+                    Planowana data wykonania
+                </th>
+                <th>
+                    Data wykonania
+                </th>
+                <th>
+                    Wykonawca
+                </th>
+                 <th>
+                    Firma wykonująca
+                </th>
+                <th>
+                    Uwagi
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+{% endblock %}

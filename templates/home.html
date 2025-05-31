@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <script src="//www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="//www.amcharts.com/lib/3/serial.js"></script>
+    <script src="//www.amcharts.com/lib/3/themes/light.js"></script>
+    <script src="/site_media/amcharts/plugins/dataloader/dataloader.min.js" type="text/javascript"></script>
+    <script src="/site_media/home.js" type="text/javascript"></script>
+
+    {% if perms.crm.view_cost_chart %}
+    <script src="/site_media/charts/costs.js" type="text/javascript"></script>
+    {% endif %}
+    {% if perms.cmms.view_device_class_chart %}
+    <script src="/site_media/charts/devices.js" type="text/javascript"></script>
+    {% endif %}
+    {% if perms.cmms.view_ticket_chart %}
+    <script src="/site_media/charts/tickets.js" type="text/javascript"></script>
+    {% endif %}
+
+    <link rel="Stylesheet" href="/site_media/css/home.css" type="text/css"/>
+    {% if perms.reminders.view_event_calendar %}
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/bootstrap2/css/bootstrap-home.css" type="text/css">
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/bootstrap2/css/bootstrap-responsive.css" type="text/css">
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/css/calendar.min.css" type="text/css">
+    <link rel="stylesheet" href="/site_media/BootstrapCalendar/css/custom.css?v=3" type="text/css">
+    {% endif %}
+
+<div id="content" class="dashboard">
+    <h1><strong>Pulpit</strong> <span style="color: rgb(220, 220, 220); font-size: 18px;">|</span> <span style="color: rgb(102, 102, 102);">{{ user }}</span>{% if user_groups %} <span>({{ user_groups }})</span>{% endif %}
+    {% if perms.cmms.add_ticket %}
+    <div class="_button green"><a id="newTicket" href="javascript:add_ticket(false);">Nowe zgłoszenie</a></div>
+    {% endif %}
+    </h1>
+<div id="lcol">
+    <div class="module">
+        <table style="width:100%">
+            <h2 id="ticket_module_title" class="collapsed">
+                <a href="/a/cmms/ticket" class="section">Ostatnie zgłoszenia ({{ latest_tickets.count }})</a>
+                (<a id="ticket_module_toggle" href="javascript:toggleTable('ticket_module')">Pokaż</a>)
+            </h2>
+
+            <tbody id="ticket_module" style="display:none">
+                {% for t in latest_tickets %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%"><a href="javascript:preview_ticket({{ t.pk }});">{{ t }}</a></th>
+                    <td><a href="/a/cmms/ticket/{{ t.pk }}" class="changelink">Zmień</a></td>
+                </tr>
+                {% endfor %}
+                {% if show_more_tickets_link %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%; text-align: center;"><a href="/a/cmms/ticket/">Zobacz wszystkie</a></th>
+                    <td>&nbsp;</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module">
+        <table style="width:100%">
+            <h2 id="service_module_title">
+                <a href="/a/cmms/service/" class="section">Otwarte zlecenia ({{ opened_services_count }})</a>
+                (<a id="service_module_toggle" href="javascript:toggleTable('service_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="service_module" style="display:table">
+                {% for s in opened_services %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%"><a href="javascript:open_service_preview({{ s.pk }});">{{ s }}</a></th>
+                    <td><a href="/a/cmms/service/{{ s.pk }}" class="changelink">Zmień</a></td>
+                </tr>
+                {% endfor %}
+                {% if show_more_services_link %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%; text-align: center;"><a href="/a/cmms/service/">Zobacz wszystkie</a></th>
+                    <td>&nbsp;</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module">
+        <table style="width:100%">
+            <h2 id="device_module_title">
+                <a href="/a/cmms/device/" class="section">
+                    Urządzenia {% if not can_view_all_devices %}na Twoim oddziale{% endif %} ({{ devices_all_count }})
+                </a>
+                (<a id="device_module_toggle" href="javascript:toggleTable('device_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="device_module" style="display: table">
+                {% for d in devices_all %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%"><a href="javascript:preview_device_id({{ d.pk }});">{{ d }}</a></th>
+                    <td><a href="/a/cmms/device/{{ d.pk }}" class="changelink">Zmień</a></td>
+                </tr>
+                {% endfor %}
+                {% if show_more_devices_link %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%; text-align: center;"><a href="/a/cmms/device/">Zobacz wszystkie</a></th>
+                    <td>&nbsp;</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module">
+        <table style="width:100%">
+            <h2 id="broken_module_title">
+                <a href="/a/cmms/device/" class="section">Uszkodzone urządzenia ({{ devices_broken_count }})</a>
+                (<a id="broken_module_toggle" href="javascript:toggleTable('broken_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="broken_module" style="display: table">
+                {% for d in devices_broken %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%"><a href="javascript:preview_device_id({{ d.pk }});">{{ d }}</a></th>
+                        <td><a href="/a/cmms/device/{{ d.pk }}" class="changelink">Zmień</a></td>
+                    </tr>
+                {% endfor %}
+                {% if show_more_broken_link %}
+                <tr>
+                    <th scope="row" style="border-bottom: 1px solid #eee; width:100%; text-align: center;"><a href="/a/cmms/device/?status=4">Zobacz wszystkie</a></th>
+                    <td>&nbsp;</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="rcol">
+    {% if perms.reminders.view_event_calendar %}
+    <div class="module">
+        <table style="width:100%">
+            <h2 id="calendar_module_title">
+                <a href="/kalendarz/" class="section">Kalendarz</a>
+                (<a id="calendar_module_toggle" href="javascript:toggleTable('calendar_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="calendar_module" style="xdisplay: table; width: 100%;">
+                <td>
+                    <div id="calendar"></div>
+                    <tr>
+                        <th scope="row" style="border-bottom: 1px solid #eee; width:100%; text-align: center;">
+                            <a href="/kalendarz">Zobacz wszystkie</a>
+                        </th>
+                    </tr>
+                </td>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if perms.cmms.view_ticket_chart %}
+    <div class="module">
+        <table>
+            <h2 id="ticket_graph_module_title">
+                <a href="#" class="section">Wykres - zgłoszenia</a>
+                (<a id="ticket_graph_module_toggle" href="javascript:toggleTable('ticket_graph_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="ticket_graph_module" style="xdisplay: table">
+                <td>
+                    {#<a href="javascript:;" target="_blank"><img style="width: 98%; margin-left: 1%;" src="/site_media/images/chart-image.png" /></a>#}
+                    <div id="chart-tickets"></div>
+                </td>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if perms.crm.view_cost_chart %}
+    <div class="module">
+        <table>
+            <h2 id="cost_graph_module_title">
+                <a href="#" class="section">Wykres - koszty</a>
+                (<a id="cost_graph_module_toggle" href="javascript:toggleTable('cost_graph_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="cost_graph_module" style="xdisplay: table">
+                <td>
+                    <div id="chart-costs"></div>
+                </td>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if perms.cmms.view_device_class_chart %}
+    <div class="module">
+        <table>
+            <h2 id="device_graph_module_title">
+                <a href="#" class="section">Wykres - struktura urządzeń</a>
+                (<a id="device_graph_module_toggle" href="javascript:toggleTable('device_graph_module')">Ukryj</a>)
+            </h2>
+
+            <tbody id="device_graph_module" style="xdisplay: table">
+                <td>
+                    <div id="chart-devices"></div>
+                </td>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+<br class="clear">
+</div>
+
+    {% if perms.reminders.view_event_calendar %}
+        <script type="text/javascript" src="/site_media/BootstrapCalendar/bootstrap2/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/site_media/BootstrapCalendar/underscore/underscore-min.js"></script>
+        <script type="text/javascript" src="/site_media/BootstrapCalendar/js/language/pl-PL.js"></script>
+        <script type="text/javascript" src="/site_media/BootstrapCalendar/js/calendar.js"></script>
+        <script type="text/javascript" src="/site_media/BootstrapCalendar/js/script.js"></script>
+    {% endif %}
+{% endblock %}
+

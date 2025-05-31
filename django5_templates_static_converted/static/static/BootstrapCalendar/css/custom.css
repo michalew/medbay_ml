@@ -1,0 +1,117 @@
+/* some parts of bootstrap-calendar are overwritten due to invalid source code */
+#cal-day-panel {
+    display: none !important;
+}
+
+.cal-column {
+    z-index: 1 !important;
+}
+.dh-ticket-added-date-open {
+    background-color: green !important;
+}
+
+.ticket-added-date-open {
+    background-color: green !important;
+}
+
+.dh-ticket-added-date-expired {
+    background-color: red !important;
+}
+
+.ticket-added-date-expired {
+    background-color: lightyellow !important;
+}
+
+.dh-ticket-finished {
+    background-color: lightyellow !important;
+}
+
+.ticket-finished {
+    background-color: lightyellow !important;
+}
+
+.dh-ticket-execute {
+    background-color: lightyellow !important;
+}
+
+.ticket-execute {
+    background-color: lightyellow !important;
+}
+
+.dh-device-warranty {
+    background-color: yellow !important;
+}
+
+.device-warranty {
+    background-color: yellow !important;
+}
+
+.dh-ticket-start-planned-range {
+    background-color: lightblue !important;
+}
+
+.ticket-start-planned-range {
+    background-color: lightblue !important;
+}
+
+.dh-ticket-start-planned-range-planned {
+    background-color: black !important;
+}
+
+.ticket-start-planned-range-planned {
+    background-color: black !important;
+}
+
+.dh-ticket-start-planned-range-expired {
+    background-color: red !important;
+}
+
+.ticket-start-planned-range-expired {
+    background-color: red !important;
+}
+
+.dh-ticket-start-planned-range-open {
+    background-color: lightblue !important;
+}
+
+.ticket-start-planned-range-open {
+    background-color: lightblue !important;
+}
+
+.dh-ticket-start-execute-range-finished {
+    background-color: green !important;
+}
+
+.ticket-start-execute-range-finished {
+    background-color: green !important;
+}
+
+.dh-ticket-planned-date {
+    background-color: black !important;
+    color: #ffffff;
+}
+
+.ticket-planned-date {
+    background-color: black !important;
+    color: #ffffff;
+}
+
+#eventlist {
+    width: 310px;
+}
+
+#eventlist td.date {
+    width: 75px;
+}
+
+.errorlist {
+    width: 220px !important;
+}
+
+.dh-event-info {
+    background-color: saddlebrown !important;
+}
+
+.event-info {
+    background-color: saddlebrown !important;
+}

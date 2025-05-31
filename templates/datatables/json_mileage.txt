@@ -1,0 +1,14 @@
+{% extends "datatables/base.txt" %}
+
+{% block content %}
+{% for item in querySet %}
+{
+    "id": "{{item.id}}",
+    "lp": "{{item.id}}",
+    "name": "{{item.name|escapejs|default:"-"}}",
+    "state": "{{item.state|default:"-"}}",
+    "state_max": "{{item.state_max|default:"-"}}",
+    "state_percent": "{{item.get_percentage|default:"-"}}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endblock %}

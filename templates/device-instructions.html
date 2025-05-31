@@ -1,0 +1,18 @@
+{% if documents %}
+<ul>
+    {% for d in documents %}
+    <li>
+        <h2>{{ d }}</h2>
+        <dl>
+            <dt>skan</dt><dd><a href="{% url "download_document" d.pk %}" target="_blank">{{ d }}</a></dd>
+            <dt>rodzaj</dt><dd>{{ d.get_sort_name }}</dd>
+            <dt>dodano</dt><dd>{{ d.timestamp }}</dd>
+            <dt>data dokumentu</dt><dd>{{ d.date_document }}</dd>
+            <dt>opis</dt><dd><i>{{ d.description }}</i></dd>
+        </dl>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Brak szkoleń (instrukcji)</p>
+{% endif %}

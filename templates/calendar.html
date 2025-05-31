@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="home-dashboard" class="calendar">
+<style>
+    .calendar table {
+        width: 100%;
+    }
+    .calendar table ul {
+        width: 80px;
+        height: 80px;
+        overflow: hidden;
+        text-align: left;
+        /*overflow-y: scroll;*/
+    }
+    .calendar table ul li {
+        font-weight: normal;
+    }
+    th.mon, th.tue, th.wed, th.thu, th.fri, th.sat, th.sun {
+        text-align: right;
+    }
+    td.mon, td.tue, td.wed, td.thu, td.fri, td.sat, td.sun {
+        width: 14%; height: 90px; overflow: hidden !important;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        text-align: right;
+        vertical-align: top;
+        padding: 5px 10px;
+        color: #999;
+        font-weight: bold;
+    }
+    td.sat, td.sun {
+        background-color: #FAF0EB;
+    }
+    th.month {
+        text-align: center;
+        vertical-align: top;
+        padding: 10px;
+        background-color: #fafafa;
+    }
+    th.month a {
+        font-size: 20px;
+    }
+    th.month strong {
+        font-weight: bold;
+        margin: auto 15px;
+    }
+    td.filled {
+        color: #222;
+    }
+    td.today {
+        background-color: #E3F2C6;
+        border-color: #aaa;
+    }
+</style>
+    {{ calendar }}
+    {{ prevmonth }}
+
+</div>
+{% endblock %}
+

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+	<div class="yui-g">
+{% if add_ticket %}
+<script>
+    blink = true; 
+</script>
+{% endif %}
+{% if new_device %}
+<script>
+    new_device = true; 
+</script>
+{% endif %}
+{% if device_id %}
+<script>
+    device_id = {{ device_id }}; 
+</script>
+{% endif %}
+{% if devices_group_id %}
+<script>
+    devices_group_id = {{ devices_group_id }}; 
+</script>
+{% endif %}
+
+        {#{% block content %}{% endblock %}#}
+        {% include 'devices_table.html' %}
+
+	</div>
+<div id="bottom-part">
+    <ul class="device-tabs">
+        <li>
+            <a href="#zgloszenia">Zgłoszenia</a>
+        </li>
+        <li>
+            <a href="#zlecenia">Zlecenia</a>
+        </li>
+        <li>
+            <a href="#serwis">Serwis</a>
+        </li>
+        <li>
+            <a href="#dokumenty">Dokumenty</a>
+        </li>
+{#        <li>#}
+{#            <a href="#szkolenia">Szkolenia</a>#}
+{#        </li>#}
+        <li>
+            <a href="#licznik">Licznik</a>
+        </li>
+        <li>
+            <a href="#galeria">Galeria</a>
+        </li>
+{#        <li>#}
+{#            <a href="#uzytkownicy">Użytkownicy</a>#}
+{#        </li>#}
+{#        <li>#}
+{#            <a href="#historia">Historia</a>#}
+{#        </li>#}
+{#        <li>#}
+{#            <a href="#">Cykl życia</a>#}
+{#        </li>#}
+{#        <li>#}
+{#            <a href="#wyposazenie">Wyposażenie</a>#}
+{#        </li>#}
+    </ul>
+    <div class="yui-g panes" id="pt">
+        <div>{% include 'tickets_table.html' %}</div>
+        <div>{% include 'services_table.html' %}</div>
+        <div><div id="service-history"></div></div>
+        <div><div id="device-documents"></div></div>
+        <div>{% include 'mileage_table.html' %}</div>
+        <div><div id="device-gallery"></div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+	</div>
+</div>
+
+{% endblock %}

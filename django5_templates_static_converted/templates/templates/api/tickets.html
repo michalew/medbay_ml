@@ -1,0 +1,13 @@
+[
+    {% regroup tickets_chart by created_ticket_date|date:"d-m-Y" as tickets_by_day %}
+    {% for day in tickets_by_day %}
+        {
+        "tickets": {{ day.list|length }},
+        "day": "{{ day.grouper }}"
+        }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    {% if today_tickets == 0 %}{% if tickets_chart %},{% endif %} {
+        "tickets": 0,
+        "day": "{{ today|date:"d-m-Y" }}"
+    }{% endif %}
+]

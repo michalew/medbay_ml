@@ -1,0 +1,207 @@
+#hd .hamburger-menu {
+    display: none;
+}
+
+@media screen and (max-width: 767px) {
+    .hide-mobile {
+        display: none !important;
+    }
+    #lcol, #rcol {
+        width: 100% !important;
+    }
+
+    #hd {
+        padding-top: 0px;
+        line-height: 60px;
+    }
+    #bd {
+        margin-top: 74px;
+    }
+    #hd .first.top-nav {
+        display: none;
+    }
+    #hd .hamburger-menu {
+        display: block;
+        left: 0px;
+        top: 0px;
+        position: absolute;
+    }
+
+    #hamburger-menu-container {
+        display: block;
+        position: relative;
+        padding: 18px 0px 0px 0px !important;
+        box-sizing: border-box;
+        pointer-events: none;
+        width: 100vw;
+        z-index: 1;
+        user-select: none;
+    }
+
+    #hamburger-menu-container input
+    {
+        pointer-events: all;
+        display: block;
+        position: absolute;
+        left: 30px;
+        cursor: pointer;    
+        opacity: 0;
+        transform: scale(3);
+        z-index: 2;
+        -webkit-touch-callout: none;
+    }
+    #hamburger-menu-container span {
+        display: block;
+        width: 33px;
+        margin-left: 20px;
+        height: 4px;
+        margin-bottom: 5px;
+        position: relative;
+        background: #fff;
+        border-radius: 3px;
+        z-index: 1;
+        transform-origin: 4px 0px;
+        transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+                    background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+                    opacity 0.55s ease;
+    }
+
+    #hamburger-menu-container span:first-child {
+        transform-origin: 0% 0%;
+    }
+
+    #hamburger-menu-container span:nth-last-child(2) {
+        transform-origin: 0% 100%;
+    }
+
+    #hamburger-menu-container input:checked ~ span {
+        opacity: 1;
+        transform: rotate(45deg) translate(-2px, -1px);
+        background: #fff;
+    }
+
+    #hamburger-menu-container input:checked ~ span:nth-last-child(3) {
+        opacity: 0;
+        transform: rotate(0deg) scale(0.2, 0.2);
+    }
+
+    #hamburger-menu-container input:checked ~ span:nth-last-child(2) {
+        transform: rotate(-45deg) translate(0, -1px);
+    }
+
+    #hamburger-menu-content {
+        pointer-events: all;
+        position: absolute;
+        width: 100%;
+        max-width: 300px;
+        box-sizing: border-box;
+        margin: 0;
+        top: 0px;
+        padding: 50px 20px;
+        height: 100vh;
+        overflow-y: scroll;
+        background: #1e4b61;
+        list-style-type: none;
+        -webkit-font-smoothing: antialiased;    
+        transform-origin: 0% 0%;
+        transform: translate(-100%, 0);
+        transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+    }
+
+    #hamburger-menu-content a {
+        color: white !important;
+        display: block; 
+        line-height: 40px;
+        font-size: 17px;
+    }
+
+    #hamburger-menu-content a:hover {
+        color: #ffffff; 
+        background-color: #417690;
+    }
+
+    #hamburger-menu-content ul { 
+        margin: 10px 0px; 
+    }
+    #hamburger-menu-content ul li { 
+        background-color: #356075;
+    }
+
+    #hamburger-menu-container input:checked ~ ul {
+        transform: none;
+    }
+
+    .print-passport {
+        margin-bottom: 16px;
+    }
+    
+    #fancybox-wrap {
+        width: unset !important;
+        right: -20px !important;
+        left: -20px !important;
+        top: -20px !important;
+        bottom: 0px !important;
+    }
+    #fancybox-content {
+        width: auto !important;
+        background: #eee;
+        height: 100% !important;
+    }
+    #fancybox-close {
+        top: 15px;
+        right: 15px;
+    }
+
+    button, input, select, textarea {
+        font-size: 13pt !important;
+    }
+
+    button[type=submit], input[type=submit] {
+        width: auto !important;
+        padding: 15px 20px !important;
+    }
+    #fancybox-content table {
+        /*display: block;*/
+        width: 100% !important;
+    }
+    #fancybox-content table th {
+        font-size: 12pt;
+        padding: 14px 10px;
+        box-sizing: border-box;
+    }
+    #fancybox-content table td, 
+    #fancybox-content table th {
+        display: block;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    #fancybox-content table textarea {
+        box-sizing: border-box;
+    }
+    #fancybox-content table textarea,
+    #fancybox-content table input,
+    #fancybox-content table select {
+        width: 100%;
+    }
+}
+
+.document-download-btn {
+    padding-top: 1.5em;
+    float: right;
+}
+.document-download-btn a {
+    font-size: 12pt;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0px 2px 0px #deee;
+    color: #000;
+}
+.document-download-btn a:hover,
+.document-download-btn a:focus {
+    background-color: #eee;
+}
+.document-download-btn a:active {
+    background-color: #aaa;
+}

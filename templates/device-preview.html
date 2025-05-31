@@ -1,0 +1,35 @@
+<div class="action-form">
+    <h1>
+        Podgląd urządzenia <div style="left: 10px; position: absolute;" class="print-device">Drukuj</div>
+    </h1>
+    
+    <table>
+        <tr><td>
+                <table>       
+                    <tr><th>Nazwa</th><td>{{ device.name }}</td></tr>
+                    <tr><th>Rodzaj</th><td>{{ device.genre }}</td></tr>
+                    <tr><th>Grupa</th><td>{{ device.get_group_name }}</td></tr>
+                    <tr><th>Producent</th><td>{{ device.make }}</td></tr>
+                    <tr><th>Model</th><td>{{ device.model }}</td></tr>
+                    <tr><th>Nr seryjny</th><td>{{ device.serial_number|default:"BRAK" }}</td></tr>
+                    <tr><th>Nr inwentarzowy</th><td>{{ device.inventory_number|default:"BRAK" }}</td></tr>
+                    <tr><th>Nr UDT</th><td>{{ device.udt_number|default:"BRAK" }}</td></tr>
+                    <tr><th>Data produkcji</th><td>{{ device.date_manufactured|date:"Y-m-d" }}</td></tr>
+                    <tr><th>Data zakupu</th><td>{{ device.date_bought|date:"Y-m-d" }}</td></tr>
+                    <tr><th>Data upływu gwarancji</th><td>{{ device.date_warranty|date:"Y-m-d" }}</td></tr>
+                </table>
+        </td><td>
+                <table>       
+                    <tr><th>Centrum Kosztowe</th><td>{{ device.cost_centre|default:"BRAK" }}</td></tr>
+                    <tr><th>Lokalizacja</th><td>{{ device.location|default:"BRAK" }}</td></tr>
+                    <tr><th>Miejsce</th><td>{{ device.location_place|default:"BRAK" }}</td></tr>
+                    <tr><th>Osoba odpowiedzialna</th><td>{{ device.person_responsible|default:"BRAK" }}</td></tr>
+                    <tr><th>Nadzór techniczny</th><td>{{ device.technical_supervisor|default:"BRAK" }}</td></tr>
+                    <tr><th>Firma serwisująca</th><td>{{ device.contractor|default:"BRAK" }}</td></tr>
+                    <tr><th>Uwagi</th><td>{{ device.remarks|default:"BRAK" }}</td></tr>
+                    <tr><th>Status</th><td>{{ device.get_status_name }}</td></tr>
+                </table>
+
+        </td></tr>
+    </table>
+</div>

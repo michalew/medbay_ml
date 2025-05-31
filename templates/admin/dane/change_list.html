@@ -2,7 +2,7 @@
 {% load admin_list i18n static admin_urls %}
 
 {% block extrastyle %}
-<link rel="Stylesheet" href="{% static "admin/css/base.css" %}" type="text/css"/> 
+<link rel="stylesheet" href="{% static "admin/css/base.css" %}" type="text/css"/> 
   {{ block.super }}
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
   {% if cl.formset %}
@@ -20,9 +20,9 @@
 {% endblock %}
 
 {% block extrahead %}
-<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-<script type="text/javascript" src="/site_media/filter_objects.js"></script>
-<script type="text/javascript" src="/site_media/advanced_filtering.js"></script>
+<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<script type="text/javascript" src="/static/filter_objects.js"></script>
+<script type="text/javascript" src="/static/advanced_filtering.js"></script>
 {{ block.super }}
 {{ media.js }}
 

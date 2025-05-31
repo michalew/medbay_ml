@@ -1,0 +1,17 @@
+{% extends "datatables/base.txt" %}
+
+{% block content %}
+{% for ticket in querySet %}
+{
+    "id": "{{ticket.id}}",
+    "lp": "{{ticket.id}}",
+    "timestamp": "{{ticket.timestamp|date:'Y-m-d'|default:"-"}}",
+    "sort": "{{ticket.get_sort_display|default:"-"}}",
+    "description": "{{ticket.description|escapejs|default:"-"}}",
+    "person_creating": "{{ticket.person_creating|default:"-"}}",
+    "status": "{{ticket.get_status_display|default:"-"}}",
+    "person_closing": "{{ticket.person_closing|default:"-"}}",
+    "date_closing": "{{ticket.date_closing|date:'Y-m-d'|default:"-"}}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endblock %}

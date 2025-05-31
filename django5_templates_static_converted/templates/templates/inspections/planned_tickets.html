@@ -1,0 +1,17 @@
+<tr class="planned_event">
+    <th colspan="4" style="text-align: left">Lista wygenerowanych zdarzeń:</th>
+</tr>
+<tr class="planned_event">
+    <th style="text-align: left">Lp.</th>
+    <th style="text-align: left">Nazwa</th>
+    <th style="text-align: left">Planowana data wykonania</th>
+    <th style="text-align: left">Data utworzenia zgłoszenia</th>
+</tr>
+{% for event in events %}
+    <tr class="planned_event">
+        <td>{{ forloop.counter }}.</td>
+        <td>{{ event.name }}</td>
+        <td>{{ event.date_planned|date:"d M Y" }}</td>
+        <td>{{ event.date_ticket|date:"d M Y" }}</td>
+    </tr>
+{% endfor %}

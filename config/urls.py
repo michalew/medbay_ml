@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.urls import path, include
+from django.urls.conf import re_path
 from rest_framework.routers import DefaultRouter
 from cmms.views import (
     CostCentreViewSet,
@@ -29,8 +31,10 @@ from cmms.views import (
     TicketViewSet,
     ServiceViewSet,
     HospitalViewSet,
-    MileageViewSet
+    MileageViewSet, ajax_tickets, ajax_services, ajax_devices, InspectionView, InspectionAddView, CreateInspectionEvents
 )
+from utils.widget_filter_objects import ajax_filter_services, ajax_filter_tickets, ajax_get_selected_devices, \
+    ajax_get_selected_services, ajax_get_selected_tickets, ajax_filter_devices
 
 # Router dla API v1
 router = DefaultRouter()
@@ -52,4 +56,18 @@ urlpatterns = [
     path('admin/', dane_admin.urls),
     path('api/', include(router.urls)),
     path('crm/', include('crm.urls')),
+    path('koszty/', include('costs.urls')),
+    path('ajax/devices', ajax_devices, name='ajax_devices'),
+    path('ajax/filter-devices', ajax_filter_devices, name='ajax_filter_devices'),
+    re_path(r'^ajax/tickets/(?P<did>[0-9]+)$', ajax_tickets, name='ajax_tickets'),
+    path('ajax/filter-tickets', ajax_filter_tickets, name='ajax_filter_tickets'),
+    re_path(r'^ajax/services/(?P<did>[0-9]+)$', ajax_services, name='ajax_services'),
+    path('ajax/filter-services', ajax_filter_services, name='ajax_filter_services'),
+    path('ajax/get-selected-devices', ajax_get_selected_devices, name='ajax_get_selected_devices'),
+    path('ajax/get-selected-services', ajax_get_selected_services, name='ajax_get_selected_services'),
+    path('ajax/get-selected-tickets', ajax_get_selected_tickets, name='ajax_get_selected_tickets'),
+    path('przeglady', login_required(InspectionView.as_view()), name='inspections'),
+    path('przeglady/nowy', login_required(InspectionAddView.as_view()), name='inspection-add'),
+    path('utworz-zdarzenia', login_required(CreateInspectionEvents.as_view()), name='create-inspection-events'),
 ]
+

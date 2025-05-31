@@ -1,0 +1,66 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+        .break_before { page-break-before: always; }
+        .break_after { page-break-after: always;}
+    </style>
+</head>
+<body>
+{% block content %}
+    <div>
+        <table border="0" cellpadding="0" cellspacing="0" style="width:100%">
+            <tbody>
+            <tr>
+                <td colspan="10" style="opacity: 0.5;font-weight: bold">
+                    med
+                    <span style="color:#F4F379;text-shadow: 1px 1px 3px black;">CMMS</span>
+                </td>
+                <td colspan="2" style="text-align: right">Data: {{ now|date:"Y-m-d" }}</td>
+            </tr>
+            </tbody>
+        </table><br/>
+        <table border="2" cellpadding="0" cellspacing="0" style="width:100%; text-align: center">
+            <tbody>
+                <tr>
+                    <td colspan="12" style="text-align: center"><b>medCMMS - Wydruk urządzeń medycznych</b></td>
+                </tr>
+
+                <tr style="padding: 5px">
+                    <td><b>Id</b></td>
+                    <td><b>Nazwa</b></td>
+                    <td><b>Rodzaj</b></td>
+                    <td><b>Model</b></td>
+                    <td><b>Producent</b></td>
+                    <td><b>Nr seryjny</b></td>
+                    <td><b>Nr inw.</b></td>
+                    <td><b>Lokalizacja</b></td>
+                    <td><b>Miejsce</b></td>
+                    <td><b>Osoba odpowiedzialna</b></td>
+                    <td><b>Nadzór techniczny</b></td>
+                    <td><b>Status</b></td>
+                </tr>
+                {% for device in devices %}
+                    <tr style="font-size: 10px">
+                        <td style="padding: 5px">{{ device.pk }}</td>
+                        <td style="padding: 5px">{{ device.name }}</td>
+                        <td style="padding: 5px">{{ device.genre }}</td>
+                        <td style="padding: 5px">{{ device.model }}</td>
+                        <td style="padding: 5px">{{ device.make }}</td>
+                        <td style="padding: 5px">{{ device.serial_number }}</td>
+                        <td style="padding: 5px">{{ device.inventory_number }}</td>
+                        <td style="padding: 5px">{{ device.location }}</td>
+                        <td style="padding: 5px">{{ device.location_place }}</td>
+                        <td style="padding: 5px">{{ device.person_responsible }}</td>
+                        <td style="padding: 5px">{{ device.technical_supervisor }}</td>
+                        <td style="padding: 5px" >{{ device.get_status_display }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+</body>
+</html>
+
+

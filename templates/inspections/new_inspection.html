@@ -1,0 +1,237 @@
+<script type="text/javascript" src="/site_media/filter_objects.js"></script>
+<script type="text/javascript" src="/site_media/jquery-ui-1.8.17.custom/js/jquery-ui-1.8.17.custom.min.js"></script>
+<script>
+    IS_INSPECTION_PAGE = true;
+</script>
+
+<div class="action-form">
+    <h1>Nowy plan przeglądów</h1>
+    <form action="{% url 'inspection-add' %}" method="POST" id="add-inspection">{% csrf_token %}
+        <table>
+            <tr>
+                <td>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th colspan="2" style="text-align: left">Szczegóły przeglądu/konserwacji</th>
+                            </tr>
+                            <tr>
+                                <th>{{ form.name.label }}*</th>
+                                <td>
+                                    {{ form.name }}
+                                    <div style="color:red" class="errors error_name"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ form.type.label }}</th>
+                                <td>
+                                    {{ form.type }}
+                                    <div style="color:red" class="errors error_type"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ form.priority.label }}</th>
+                                <td>
+                                    {{ form.priority }}
+                                    <div style="color:red" class="errors error_priority"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ form.duration_time.label }}</th>
+                                <td>
+                                    {{ form.duration_time }}
+                                    {{ form.duration_period }}
+                                    <div style="color:red" class="errors error_duration_time"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ form.description.label }}</th>
+                                <td>
+                                    {{ form.description }}
+                                    <div style="color:red" class="errors error_description"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th colspan="2" style="text-align: left">Powiązane urządzenia</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    {% if devices %}
+                                        <a class='filter-objects' data-objects_name="device">Zmień powiązane urządzenia</a>
+                                        <div>Wybrane obiekty:</div>
+                                        <table id="related_devices">
+                                            <tr>
+                                                <td>Id</td>
+                                                <td>Nazwa</td>
+                                                <td>Producent</td>
+                                                <td>Model</td>
+                                                <td>Nr seryjny</td>
+                                                <td>Nr inwentarzowy</td>
+                                                <td>Lokalizacja</td>
+                                            </tr>
+                                            {% for current_related_object in devices %}
+                                                <input type="hidden" name="device" value="{{ current_related_object.pk }}">
+                                                <tr class="current_related_objects_device">
+                                                    <td id="{{ current_related_object.pk }}">{{ current_related_object.pk }}.</td>
+                                                    <td>
+                                                        <a href="{{ current_related_object.get_absolute_url }}">
+                                                            {{ current_related_object }}</a>
+                                                    </td>
+                                                    <td>{{ current_related_object.make }}</td>
+                                                    <td>{{ current_related_object.model }}</td>
+                                                    <td>{{ current_related_object.serial_number }}</td>
+                                                    <td>{{ current_related_object.inventory_number }}</td>
+                                                    <td>{{ current_related_object.location }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </table>
+                                    {% else %}
+                                        <a class='filter-objects' data-objects_name="device">Dodaj powiązane urządzenia</a>
+                                        <table id="inspection_related_devices" style="margin-left: 100px">
+                                            <tr><td><p>Brak powiązanych urządzeń</p></td></tr>
+                                            <tr><td><div style="color:red" class="errors error_related_devices"></div></td></tr>
+                                        </table>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th colspan="2" style="text-align: left">Harmonogram wykonania</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Utwórz {{ form.count_planned_events }} <span style="color:red" class="errors error_count_planned_events"></span> planowanych zdarzeń
+                                    co {{ form.cycle_value }} <span style="color:red" class="errors error_cycle_value"></span> {{ form.cycle_value_period }} zaczynając od
+                                    {{ form.cycle_date_start }} <span style="color:red" class="errors error_cycle_date_start"></span> <br/>
+
+                                    Utwórz nowe zgłoszenia: {{ form.recurring_time }} <span style="color:red" class="errors error_recurring_time"></span>
+                                    {{ form.recurring_period }}
+                                    przed planowanymi datami wykonania.
+                                </td>
+                            </tr>
+                            <tr style="text-align: center">
+                                <td colspan="4">
+                                    <div class="button-inspection-middle create_events">Utwórz</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table>
+                        <tbody>
+                            <tr class="planned_ticket_to_change"></tr>
+                            <tr>
+                                <th colspan="2">Części</th>
+                                <td colspan="2">
+                                    {{ form.device_elements }}
+                                    <div style="color:red" class="errors error_device_elements"></div>
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <div class="button-inspection-save generate_tickets" style="padding: 5px">Generuj przeglądy/konserwacje"</div>
+                                </td>
+                                <td><div class="button-inspection-cancel">Anuluj</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<script>
+    $(document).ready(function(){
+
+        $("#id_count_planned_events").keyup(function(){
+           var value = $(this).val();
+           if(value == '1' || value == 1) {
+               $("#id_cycle_value").attr("disabled", "disabled");
+               $("#id_cycle_value_period").attr("disabled", "disabled");
+           } else {
+               $("#id_cycle_value").attr("disabled", false);
+               $("#id_cycle_value_period").attr("disabled", false);
+           }
+        });
+
+        $(".button-inspection-cancel").click(function(){
+            location.href = "/przeglady"
+        });
+
+        $("#id_cycle_date_start").datepicker({ dateFormat: "yy-mm-dd" });
+
+        if ( typeof(window.LAST_INSPECTION_DATA) !== 'undefined' && window.LAST_INSPECTION_DATA) {
+            for (name in window.LAST_INSPECTION_DATA) {
+                $("[name='"+name+"']").val(window.LAST_INSPECTION_DATA[name]);
+            }
+        }
+
+        $(".create_events").click(function(){
+            $("[class^='errors']").text("");
+            var name = $("#id_name").val();
+            var count_planned_events = $("#id_count_planned_events").val();
+            var cycle_value = $("#id_cycle_value").val();
+            var cycle_value_period = $("#id_cycle_value_period").val();
+            var cycle_date_start = $("#id_cycle_date_start").val();
+            var recurring_time = $("#id_recurring_time").val();
+            var recurring_period = $("#id_recurring_period").val();
+
+            var devices = "";
+            $("[name='device']").each(function(){
+                devices = devices + $(this).val() + ",";
+            });
+            devices = devices.slice(0, devices.length-1)
+
+            $.get("/utworz-zdarzenia?name="+name+"&count_planned_events="+count_planned_events+
+                    "&cycle_value="+cycle_value+"&cycle_value_period="+cycle_value_period+
+                    "&cycle_date_start="+cycle_date_start+"&recurring_time="+recurring_time+
+                    "&recurring_period="+recurring_period+"&devices="+devices, function(data) {
+                $(".planned_event").remove();
+
+                if (data['planned_events_table']) {
+                    $(".planned_ticket_to_change").after(data['planned_events_table']);
+                } else {
+                    for (var field in data['errors']){
+                        var field_name = field;
+                        var error = data['errors'][field];
+                        $(".error_"+field_name).text(error);
+                    }
+                }
+            });
+        });
+
+        $(".generate_tickets").click(function(){
+
+            $("[class^='errors']").text("");
+
+            var data_to_send = $("form").serialize();
+            var url = $("#add-inspection").attr("action");
+
+            var devices = "";
+            $("[name='device']").each(function(){
+                devices = devices + $(this).val() + ",";
+            });
+            devices = devices.slice(0, devices.length-1)
+
+            if (devices == "") {
+                alert("Wybierz co najmniej jedno urządzenie!")
+            } else {
+                $.fancybox("<div style='height:100px;background-color:grey;padding-top:57px;padding-left:10px;padding-right:10px;color:white;'>Trwa generowanie przeglądów.<br/>Proszę czekać...</div>")
+            }
+            $.post(url, data_to_send, function(data){
+
+                if (data["save"]) {
+                    location.href = "/przeglady"
+                } else {
+                    for (var field in data){
+                        var field_name = field;
+                        var error = data[field];
+                        $(".error_"+field_name).text(error);
+                    }
+
+                }
+            });
+        })
+
+
+    });
+
+</script>

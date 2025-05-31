@@ -1,0 +1,14 @@
+{% load deviceclass_tags %}
+[
+    {% for year in years %}
+    {
+        {% regroup devices_graph by pk|class_by_year:year as devices_by_class %}
+        {% for class in devices_by_class %}
+            {% if class.grouper > -1 %}
+            "class{{ class.grouper }}": {{ class.list|length }},
+            {% endif %}
+        {% endfor %}
+        "year": "{{ year }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]

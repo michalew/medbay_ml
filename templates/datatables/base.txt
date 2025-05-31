@@ -1,0 +1,8 @@
+{
+    "sEcho": {{sEcho}},
+    "iTotalRecords": {{iTotalRecords}},
+    "iTotalDisplayRecords": {{iTotalDisplayRecords}},
+    "aaData":[
+        {% spaceless %}{% block content %}{% endblock %}{% endspaceless %}
+    ]
+}

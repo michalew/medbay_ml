@@ -1,0 +1,38 @@
+{#{% extends "admin/base_site.html" %}#}
+{#{% load i18n %}#}
+{##}
+{#{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">{% trans 'Home2' %}</a></div>{% endblock %}#}
+{##}
+{#{% block content %}#}
+{##}
+{#    <p>{% trans "Thanks for spending some quality time with the Web site today." %}</p>#}
+{##}
+{#    <p><a href="{% url 'admin:index' %}">{% trans 'Log in again' %}</a></p>#}
+{##}
+{#{% endblock %}#}
+
+
+
+
+{% extends 'base.html' %}
+{% block top_menu %}{% endblock %}
+{% block content %}
+
+    <style>
+    body {
+        background: url(/site_media/images/login-bg.jpg) 50% 50% no-repeat transparent;
+    }
+    #bd {
+        margin-top: 0px;
+        padding: 9% 0%;
+    }
+    .logout-panel {
+        -webkit-box-shadow: 0 0 200px 100px #FFFFFF;
+        box-shadow: 0 0 200px 100px #FFFFFF;
+    }
+    </style>
+    <div id="home-dashboard" class="logout-panel">
+        <img src="/site_media/images/icons/login.png' %}"/><br/>
+        <a href="/">Zaloguj się ponownie</a>
+    </div>
+{% endblock %}

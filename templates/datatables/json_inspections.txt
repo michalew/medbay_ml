@@ -1,0 +1,25 @@
+{% extends "datatables/base.txt" %}
+{% load inspection_tags %}
+
+{% block content %}
+{% for row in querySet %}{% get_ticket row.ticket_id as ticket %}
+{
+    "id": "{{row.id}}",
+    "from_which_inspection": "{{ticket.from_which_inspection.get_absolute_url_with_label|default:"-"}}",
+    "lp_device": "{{row.id}}",
+    "name": "{{row.name|default:"-"}}",
+    "make": "{{row.make|default:"-"}}",
+    "model": "{{row.model|default:"-"}}",
+    "serial_number": "{{row.serial_number|default:"-"}}",
+    "inventory_number": "{{row.get_absolute_url_with_label}}",
+    "location": "{{row.location.name|default:"-"}}",
+    "ticket_id": "{{row.ticket_id|default:"-"}}",
+    "inspection_type": "{{ticket.get_inspection_type_display|default:"-"}}",
+    "planned_date_execute": "{{row.planned_date_execute|date:'Y-m-d'|default:"-"}}",
+    "date_execute": "{{row.date_execute|date:'Y-m-d'|default:"-"}}",
+    "person_execute": "{{row.person_execute|default:"-"}}",
+    "contractor_execute": "{{row.contractor_execute|default:"-"}}",
+    "description": "{{row.description|default:"-"}}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endblock %}

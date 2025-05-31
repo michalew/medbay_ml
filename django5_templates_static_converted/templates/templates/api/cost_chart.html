@@ -1,0 +1,8 @@
+[
+    {% for day, cost in sorted_costs %}
+        {
+        "cost": {{ cost }},
+        "month": "{{ day }}"
+        }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]

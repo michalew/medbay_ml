@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load url from simple_history_compat %}
+{% load admin_urls %}
+
+
+{% block content %}
+  <div class="breadcrumb">
+      <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+      &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+      &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ module_name }}</a>
+      &rsaquo; <a href="{% url opts|admin_urlname:'change' object.pk|admin_urlquote %}">{{ object|truncatewords:"18" }}</a>
+      &rsaquo; Historia zmian
+  </div>
+
+  <br/>
+
+  <h1>Historia zmian: {{ object }}</h1>
+
+  <div id="content-main">
+
+    <div class="module">
+      {% if action_list %}
+        <table id="change-history" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th scope="col">{% trans 'Date/time' %}</th>
+              <th scope="col">{% trans 'Zmiany' %}</th>
+              <th scope="col">{% trans 'Autor' %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for action in action_list %}
+              <tr>
+                <td>{{ action.history_date }}</td>
+                <td>
+                    {% for diff in action.diff %}
+                        {{ diff }}<br/>
+                    {% empty %}Brak zmian.
+                    {% endfor %}
+                </td>
+                <td>
+                  {% if action.history_user %}
+                    {% url admin_user_view action.history_user_id as admin_user_url %}
+                    {% if admin_user_url %}
+                      <a href="{{ admin_user_url }}">{{ action.history_user }}</a>
+                    {% else %}
+                      {{ action.history_user }}
+                    {% endif %}
+                  {% else %}
+                    SYSTEM
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>{% trans "This object doesn't have a change history." %}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

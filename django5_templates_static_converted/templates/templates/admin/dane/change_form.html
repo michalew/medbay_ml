@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% load i18n admin_modify admin_static admin_urls comments show_history %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+<script type="text/javascript" src="/site_media/filter_objects.js' %}"></script>
+<script type="text/javascript" src="/site_media/jquery-ui-1.8.17.custom/js/jquery-ui-1.8.17.custom.min.js' %}"></script>
+{#<script src="http://code.jquery.com/jquery-1.9.1.js' %}"></script>#}
+{#  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js' %}"></script>#}
+<script type="text/javascript" src="/site_media/custom_autocomplete.js' %}"></script>
+{% endblock %}
+
+{% block extrastyle %}
+<link rel="Stylesheet" href="{% static "admin/css/base.css' %}" %}" type="text/css"/> 
+{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css' %}" %}" />
+<link rel="stylesheet" type="text/css" href="/site_media/css/custom_autocomplete.css' %}" />
+{#    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css' %}" />#}
+{% endblock %}
+
+{% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
+
+{% block content %}
+<div id="content" class="{% if ordered_objects %}colMS{% else %}colM{% endif %}">
+        
+    {% block content_title %}{% if change %}<h1>{{ title|cut:"Zmień" }} #{{ original.pk }}</h1>{% else %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endif %}{% endblock %}
+        <br class="clear" />
+<div id="content-main">
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <ul class="object-tools">
+    {% block object-tools-items %}
+    {% if content_type_model == "service" %}
+        <li><a class="quick_service_pdf" href="#{{ original.pk }}"  class="historylink">Generuj PDF</a></li>
+    {% endif %}
+    {% if content_type_model == "invoice" %}
+        <li><a class="reset_costbreakdown" href="#{{ original.pk }}"  class="historylink">Resetuj podział kosztów</a></li>
+    {% endif %}
+    <li><a href="#" id="print_admin" class="historylink">Wydrukuj</a></li>
+    {% if content_type_model == "service" or content_type_model == "ticket" %}
+    <li><a href="#" id="passport_manager" class="historylink">Dodaj wpis do paszportu</a></li>
+    {% endif %}
+    <li><a href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}" class="historylink">{% trans "History" %}</a></li>
+    {% endblock %}
+  </ul>
+
+    <script>
+    $("#print_admin").on("click",
+        function() {
+            var form_url;
+            form_url = "{% url "pdf-generate-admin" content_type_model %}?objects={{ original.pk }}";
+
+            $.get(form_url, function(data) { // pobieramy ajaxem formularz
+                    $.fancybox( // żeby ładnie było
+                        data, {}
+                    );
+                });
+            });
+    $("#passport_manager").on("click",
+        function() {
+            var form_url;
+            form_url = "{% url "passport-manager" %}?model={{ content_type_model }}&obj={{ original.pk }}";
+
+            if (window.user_group_permissions.indexOf("cmms.add_devicepassport") < 0) {
+                alert("Brak wymaganych uprawnień!");
+                return false;
+            }
+
+            $.get(form_url, function(data) { // pobieramy ajaxem formularz
+                    $.fancybox( // żeby ładnie było
+                        data, {}
+                    );
+                });
+            });
+    if (window.user_group_permissions.indexOf("cmms.add_devicepassport") < 0) { $("#passport_manager").hide(); }
+    </script>
+{% endif %}{% endif %}
+{% endblock %}
+<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
+<div>
+{% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
+{% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
+{% if errors %}
+    <p class="errornote">
+    {% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+    </p>
+    {{ adminform.form.non_field_errors }}
+{% endif %}
+
+{% if change or add %}
+<style>
+    .form-row button,
+    h1 button {
+        font-size: 12px;
+        margin-left: 20px;
+        padding: 5px 10px 5px 10px;
+    }
+    ul.description {
+        margin-left:0 !important;
+    }
+    .cmms-device.change-form .field-service_interval {
+        padding-top: 0px;
+    }
+    .cmms-device.change-form .field-service_interval > div {
+        display: inline-block;
+    }
+    .cmms-device.change-form .field-service_interval_type {
+        border-bottom: 0px;
+        padding: unset;
+        font-size: unset;
+        position: relative;
+        top: 10px;
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        // $("#content-main").find('input, textarea, button, select').not('.form-row button, .form-row textarea').attr('disabled','disabled');
+        //$("a.deletelink").hide();
+        //$("h1 button").on("click", function() {
+        //    //$("#content-main").find('input, textarea, button, select').removeAttr('disabled');
+        //$("a.deletelink").show();
+        //});
+
+        $("#add_comment").on("click", function(e) {
+            e.preventDefault();
+            var comment = $("#id_comment").val();
+            _comment = add_comment(comment, "{{ object_id }}", {{ user.pk }}, {{ content_type_id }});
+            return false;
+        });
+
+        $("a.quick_service_pdf").click(function() {
+            var service = this.hash.replace('#', '');
+            generate_pdf('Service', service);
+        });
+        $("a.reset_costbreakdown").click(function() {
+            if (confirm("Czy na pewno chcesz zresetować podział kosztów? Wszystkie zmiany zostaną utracone!")){
+                var invoice = this.hash.replace('#', '');
+                url = "/reset-costbreakdown/?invoice=" + invoice;
+                $.get(url, function(data) {
+                    if (data == 'reset'){
+                        location.reload();
+                    }
+                });
+                return false;
+            } else {
+                return false;
+            }
+
+        });
+
+        $("[id^='id_devicegallery_set-']").attr("rows", 5);
+
+        /*========================================================*/
+            $("#inspection_form").find("#id_name").css("width", "800");
+            $("[id$='-planned_date'], [id$='-ticket_date']").css("width", "200")
+        /*========================================================*/
+        {% if custom_combo_fields %}
+        {% for field in custom_combo_fields %}
+        $( "#id_{{ field }}" ).select2();
+        {% endfor %}
+        {% endif %}
+
+
+    // disable document selects
+    $("select[id^='id_Document_']").each(function() {
+        $(this).prop("disabled", true);
+        if ($(this).val()) $(this).next().remove();
+    });
+
+    // handle not saved inlines
+    var submitted = false;
+    $("#content-main form").submit(function(e) {
+        $("select[id^='id_Document_']").each(function() {
+            $(this).prop("disabled", false); // because disabled fields are not passed to server
+        });
+        submitted = true;
+    });
+    $(window).bind('beforeunload', function(e){
+        warn = false;
+        $(".dynamic-Document_ticket a.add-another, .dynamic-Document_service a.add-another").prev().each(function() {
+            if ($(this).val()) warn = true;
+        });
+        if (warn && !submitted) return 'Nie zapisano dodanych dokumentów, opuścić stronę?';
+    });
+
+    $("[id$='-DELETE']").click(function(){
+       if($(this).prop("checked")){
+           $(this).parents("tr").hide();
+       }
+    });
+
+
+    });
+</script>
+{% endif %}
+
+{% block field_sets %}
+    {% for fieldset in adminform %}{% if content_type_model != "document" or not is_popup or not forloop.counter == 1 %}
+        {% if forloop.last %}
+            {% if original and content_type_model == "ticket" or original and content_type_model == "service" %}
+                {% get_comment_count for original as comment_count %}
+                <style>
+                    .comments h2 {
+                        margin-bottom: 2em;
+                    }
+                    .comments dl
+                    {
+                        padding: 0;
+                        margin-top: 2em;
+                    }
+
+                .comments dt
+                {
+                    width: 12em;
+                    font-weight: bold;
+                    text-align: right;
+                    border-right: 1px solid #999;
+                    float: left; clear: left;
+                    margin:0;
+                    height: 4em;
+                    line-height: 16px;
+                    padding: 0.5em 1.5em 0.5em 0em;
+                }
+                .comments span { font-weight: normal; color: #999; }
+
+                .comments dd
+                {
+                    margin: 0 0 0 15em;
+                    padding: 0.5em 1.5em 0.5em 0em;
+                    min-height: 4em;
+                }
+                .comments dt {
+                }
+                .comments p {
+                    font-size: inherit;
+                    margin:0 !important;
+                    padding:0 !important;
+                    line-height: 16px;
+                }
+                </style>
+                <fieldset class="module aligned comments">
+                    <h2>Komentarze ({{ comment_count }})</h2>
+                        <div class="form-row sort">
+                            {% if content_type_model == "ticket" and perms.cmms.add_comment_ticket or content_type_model == "service" and perms.cmms.add_comment_service %}
+                                {% if can_add_comment %}
+                                <label>Komentarze</label><textarea id="id_comment" rows="4" cols="40" name="comment" placeholder="Dodaj komentarz..."></textarea>
+                                <button id="add_comment" style="vertical-align: bottom;" type="button">Dodaj</button>
+                                {% endif %}
+                            {% endif %}
+                {% ifnotequal comment_count 0 %}
+                {% render_comment_list for original %}
+                {% endifnotequal %}
+                        </div>
+
+                </fieldset>
+            {% endif %}
+        {% endif %}
+
+        {% include "admin/includes/fieldset.html" %}{% endif %}
+    {% endfor %}
+    {% block inline_field_sets %}
+        {% if content_type_model != "ticket" and content_type_model != "service" %}
+        {% for inline_admin_formset in inline_admin_formsets %}
+            {% include inline_admin_formset.opts.template %}
+        {% endfor %}
+        {% endif %}
+    {% endblock %}
+
+    {% if show_history and original %}
+    {% inline_history original %}
+    {% endif %}
+{% endblock %}
+
+{% block after_field_sets %}
+    {% if cost_center_summary|length %}
+        <div class="inline-group" id="summary_set-group">
+            <div class="tabular inline-related last-related">
+                <fieldset class="module">
+                    <h2>Podsumowanie</h2>
+
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Lp.</th>
+                            <th>Koszt netto</th>
+                            <th>Koszt brutto</th>
+                            <th>Symbol centrum kosztowego</th>
+                            <th>Opis centrum kosztowego</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for key, row in cost_center_summary.items %}
+                            <tr class="form-row row{% if forloop.counter|divisibleby:2 %}2{% else %}1{% endif %} has_original dynamic-summary_set" id="summary_set-{{ forloop.counter0 }}">
+                                <td>
+                                    {{ forloop.counter }}.
+                                </td>
+                                <td>
+                                    {{ row.net_cost }}
+                                </td>
+                                <td>
+                                    {{ row.gross_cost }}
+                                </td>
+                                <td>
+                                    {{ row.cost_center_symbol }}
+                                </td>
+                                <td>
+                                    {{ row.cost_center_description }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </fieldset>
+            </div>
+        </div>
+
+    {% endif %}
+
+{% endblock %}
+
+{#{% block inline_field_sets %}#}
+{% if content_type_model != "ticket" and content_type_model != "service" and content_type_model != 'invoice' and content_type_model != 'mileage' and content_type_model != 'device' and content_type_model != "inspection" %}
+    {% for inline_admin_formset in inline_admin_formsets %}
+        {% include inline_admin_formset.opts.template %}
+    {% endfor %}
+{% endif %}
+{#{% endblock %}#}
+
+{% block after_related_objects %}{% endblock %}
+
+{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+
+{% if adminform.first_field and add %}
+   <script type="text/javascript">
+       var first_field = document.getElementById("{{ adminform.first_field.id_for_label }}")
+       if (first_field) {
+           first_field.focus();
+       }
+   </script>
+{% endif %}
+
+{# JavaScript for prepopulated fields #}
+{% prepopulated_fields_js %}
+
+</div>
+</form></div>
+</div>
+{% endblock %}
