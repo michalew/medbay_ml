@@ -170,6 +170,7 @@ class DevicePassportInline(admin.TabularInline):
     extra = 1
     ordering = ("added_date", )
     fields = ("added_date", "content", )
+    classes = ('collapse','closed',)
 
     def has_add_permission(self, request, obj=None):
         original_perm = super(DevicePassportInline,
@@ -248,7 +249,7 @@ class DeviceAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
                     'date_bought',
                     'date_warranty',
                 ),
-                'classes': ('collapse', 'open'),
+                'classes': ('collapse',),
             }
         ), (
             u"Lokalizacja i serwis", {
@@ -261,7 +262,7 @@ class DeviceAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
                     'contractor',
                     'remarks',
                 ),
-                'classes': ('collapse', 'open'),
+                'classes': ('collapse',),
             }
         ), (
             u"Przegląd", {
@@ -271,7 +272,7 @@ class DeviceAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
                     "service_interval_type",
                     "date_next_service",
                 ),
-                'classes': ('collapse', 'open'),
+                'classes': ('collapse', ),
             }
         ),
     )
@@ -531,9 +532,8 @@ class DocumentTicketInline(admin.TabularInline):
     verbose_name_plural = u"Załączniki i dokumenty"
     template = 'admin/edit_inline/tabular_document_ticket.html'
 
-    def has_add_permission(self, request):
-        original_perm = super(DocumentTicketInline,
-                              self).has_add_permission(request)
+    def has_add_permission(self, request, obj=None):
+        original_perm = super(DocumentTicketInline, self).has_add_permission(request, obj)
         return request.user.has_perm('cmms.add_document_ticket') and original_perm
 
 
@@ -917,15 +917,14 @@ class TicketAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         urls = super(TicketAdmin, self).get_urls()
 
         my_urls = [
-            re_path(r'^get_advanced_ticket_filter/$', 'dane.admin_views.get_advanced_ticket_filter',
-                name='get_advanced_ticket_filter'),
-            re_path(r'^/get_contractor/$', 'dane.admin_views.get_contractor',
-                name='get_contractor'),
+            re_path(r'^get_advanced_ticket_filter/$', admin_views.get_advanced_ticket_filter,
+                    name='get_advanced_ticket_filter'),
+            re_path(r'^get_contractor/$', admin_views.get_contractor, name='get_contractor'),
         ]
         return my_urls + urls
 
-    def get_form(self, request, obj=None):
-        form = super(TicketAdmin, self).get_form(request, obj)
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(TicketAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
         return form
 
@@ -1219,16 +1218,13 @@ class ServiceAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         return services
 
     def get_urls(self):
-
         urls = super(ServiceAdmin, self).get_urls()
 
         my_urls = [
-re_path(r'^get_advanced_service_filter/$', 'dane.admin_views.get_advanced_service_filter',
-                name='get_advanced_service_filter'),
-            re_path(r'^get_contractor/$', 'dane.admin_views.get_contractor',
-                name='get_contractor'),
-        
-]
+            re_path(r'^get_advanced_service_filter/$', admin_views.get_advanced_service_filter,
+                    name='get_advanced_service_filter'),
+            re_path(r'^get_contractor/$', admin_views.get_contractor, name='get_contractor'),
+        ]
         return my_urls + urls
 
     def get_form(self, request, obj=None):
@@ -1732,11 +1728,11 @@ class InvoiceAdmin(admin.ModelAdmin):
         urls = super(InvoiceAdmin, self).get_urls()
 
         my_urls = [
-re_path(r'^get_advanced_invoice_filter/$', 'dane.admin_views.get_advanced_invoice_filter',
-                name='get_advanced_invoice_filter'),
-        
-]
+            re_path(r'^get_advanced_invoice_filter/$', admin_views.get_advanced_invoice_filter,
+                    name='get_advanced_invoice_filter'),
+        ]
         return my_urls + urls
+        
 
     def get_queryset(self, request):
         filters = {}
@@ -2187,16 +2183,13 @@ class DocumentAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         return fieldsets
 
     def get_urls(self):
-
         urls = super(DocumentAdmin, self).get_urls()
 
         my_urls = [
-re_path(r'^get_advanced_document_filter/$',
-                'dane.admin_views.get_advanced_document_filter', name='get_advanced_document_filter'),
-            re_path(r'^get_contractor/$', 'dane.admin_views.get_contractor',
-                name='get_contractor'),
-        
-]
+            re_path(r'^get_advanced_document_filter/$', admin_views.get_advanced_document_filter,
+                    name='get_advanced_document_filter'),
+            re_path(r'^get_contractor/$', admin_views.get_contractor, name='get_contractor'),
+        ]
         return my_urls + urls
 
 
@@ -2441,10 +2434,9 @@ class MileageAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         urls = super(MileageAdmin, self).get_urls()
 
         my_urls = [
-re_path(r'^get_advanced_mileage_filter/$', 'dane.admin_views.get_advanced_mileage_filter',
-                name='get_advanced_mileage_filter'),
-        
-]
+            re_path(r'^get_advanced_mileage_filter/$', admin_views.get_advanced_mileage_filter,
+                    name='get_advanced_mileage_filter'),
+        ]
         return my_urls + urls
 
     def get_device(self):
@@ -2625,12 +2617,12 @@ dane_admin.register(Device, DeviceAdmin)
 
 dane_admin.register(Genre, GenreAdmin)
 dane_admin.register(Make, MakeAdmin)
-#dane_admin.register(Mileage, MileageAdmin)
-#dane_admin.register(Contractor, ContractorAdmin)
-#dane_admin.register(CostCentre, CostCentreAdmin)
-#dane_admin.register(Invoice, InvoiceAdmin)
-# dane_admin.register(Location, LocationAdmin)
-# dane_admin.register(Ticket, TicketAdmin)
+dane_admin.register(Mileage, MileageAdmin)
+dane_admin.register(Contractor, ContractorAdmin)
+dane_admin.register(CostCentre, CostCentreAdmin)
+dane_admin.register(Invoice, InvoiceAdmin)
+dane_admin.register(Location, LocationAdmin)
+dane_admin.register(Ticket, TicketAdmin)
 # dane_admin.register(Service, ServiceAdmin)
 # dane_admin.register(Document, DocumentAdmin)
 # dane_admin.register(UserProfile, UserProfileAdmin)

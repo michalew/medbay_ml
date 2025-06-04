@@ -19,6 +19,8 @@ from django.contrib.auth.decorators import login_required
 from django.urls import path, include
 from django.urls.conf import re_path
 from rest_framework.routers import DefaultRouter
+
+import utils
 from cmms.views import (
     CostCentreViewSet,
     LocationViewSet,
@@ -69,5 +71,9 @@ urlpatterns = [
     path('przeglady', login_required(InspectionView.as_view()), name='inspections'),
     path('przeglady/nowy', login_required(InspectionAddView.as_view()), name='inspection-add'),
     path('utworz-zdarzenia', login_required(CreateInspectionEvents.as_view()), name='create-inspection-events'),
+    path('get_filter_devices', utils.widget_filter_objects.get_filter_devices, name='get_filter_devices'),
+    path('get_filter_tickets', utils.widget_filter_objects.get_filter_tickets, name='get_filter_tickets'),
+    path('get_filter_services', utils.widget_filter_objects.get_filter_services, name='get_filter_services'),
+    path('get_filter_external_services', utils.widget_filter_objects.get_filter_external_services, name='get_filter_external_services'),
 ]
 

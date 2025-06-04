@@ -4,7 +4,17 @@
 {% block extrahead %}
     {{ block.super }}
     <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-    {{ media }}
+
+    <script type="text/javascript" src="{% static 'old_admin/js/core.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/jquery.init.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/RelatedObjectLookups.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/actions.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/related-widget-wrapper.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/calendar.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/admin/DateTimeShortcuts.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/inlines.min.js' %}"></script>
+    
     <script type="text/javascript" src="{% static 'filter_objects.js' %}"></script>
     <script type="text/javascript" src="{% static 'jquery-ui-1.8.17.custom/js/jquery-ui-1.8.17.custom.min.js' %}"></script>
     {# <script src="https://code.jquery.com/jquery-1.9.1.js"></script> #}
@@ -17,6 +27,7 @@
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/custom_autocomplete.css' %}" />
+    
     {# <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" /> #}
 {% endblock %}
 
@@ -206,6 +217,7 @@
                                 {% if original and content_type_model in "ticket service" %}
                                     {% get_comment_count for original as comment_count %}
                                     <style>
+
                                         .comments h2 {
                                             margin-bottom: 2em;
                                         }
@@ -290,4 +302,81 @@
 {% endif %}
 
 {% prepopulated_fields_js %}
+
+    <script>
+   document.addEventListener("DOMContentLoaded", function () {
+    // Pobranie wszystkich fieldsetów z klasą "collapsed"
+    const collapsedFieldsets = document.querySelectorAll("fieldset.collapsed");
+
+    // Iteracja po każdym fieldsecie
+    collapsedFieldsets.forEach(fieldset => {
+        // Dodanie klasy "closed"
+        fieldset.classList.add("closed");
+
+        // Usunięcie klasy "open", jeśli istnieje
+        fieldset.classList.remove("open");
+    });
+});
+    </script>
+    
+   
+<script>
+    // Funkcja, która inicjalizuje wszystkie fieldsety z nagłówkiem h2 jako toggle
+    document.addEventListener("DOMContentLoaded", function () {
+        // Pobierz wszystkie fieldsety z klasą "collapse"
+        const fieldsets = document.querySelectorAll("fieldset.module.collapse");
+
+        fieldsets.forEach(fieldset => {
+            const header = fieldset.querySelector("h2"); // Pobieramy wewnętrzny nagłówek h2
+
+            // Skipuj jeśli nagłówka brak
+            if (!header) return;
+
+            // Tworzymy przycisk "Pokaż/Ukryj"
+            const toggleButton = document.createElement("button");
+            // Sprawdzamy, czy fieldset ma klasę "open", aby ustawić odpowiedni stan
+            const isOpen = fieldset.classList.contains("open");
+
+            toggleButton.textContent = isOpen ? "Ukryj" : "Pokaż"; // Ustawiamy początkowy tekst
+            toggleButton.type = "button";
+            toggleButton.classList.add("fieldset-toggle"); // opcjonalna klasa stylu
+            toggleButton.style.marginLeft = "10px"; // Mały margines dla estetyki
+
+            // Dodaj przycisk do nagłówka
+            header.appendChild(toggleButton);
+
+            // Ukryj/Pokaż zawartość fieldsetu w zależności od początkowego stanu
+            const children = Array.from(fieldset.children).filter(
+                child => !child.matches("h2")
+            ); // Pomijamy nagłówek h2
+            children.forEach(child => {
+                child.style.display = isOpen ? "" : "none"; // Początkowa widoczność
+            });
+
+            // Obsługa kliknięcia w toggleButton
+            toggleButton.addEventListener("click", function () {
+                const isCurrentlyOpen = fieldset.classList.contains("open"); // Sprawdzamy aktualny stan
+                if (isCurrentlyOpen) {
+                    fieldset.classList.remove("open");
+                    fieldset.classList.add("closed");
+                    toggleButton.textContent = "Pokaż"; // Zmieniamy tekst na przycisku
+                } else {
+                    fieldset.classList.remove("closed");
+                    fieldset.classList.add("open");
+                    toggleButton.textContent = "Ukryj"; // Zmieniamy tekst na przycisku
+                }
+
+                // Ukryj/Pokaż zawartość fieldsetu
+                children.forEach(child => {
+                    child.style.display = isCurrentlyOpen ? "none" : ""; // Przełączamy widoczność
+                });
+            });
+        });
+    });
+</script>
+    
+    
+    
+
+
 {% endblock %}

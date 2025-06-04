@@ -1,21 +1,3 @@
-CKEDITOR.config.toolbar_Pdf =
-[
- 	{ name: 'document',		items : [ 'NewPage','DocProps','Preview','Print','-' ] },
- 	{ name: 'clipboard',	items : [ 'Cut','Copy','Paste','PasteText','-','Undo','Redo' ] },
- 	{ name: 'editing',		items : [ 'Find','Replace','-','SelectAll','-','Scayt' ] },
- 	'/',
- 	{ name: 'basicstyles',	items : [ 'Bold','Italic','Underline','Strike','Subscript','Superscript','-','RemoveFormat' ] },
- 	{ name: 'paragraph',	items : [ 'NumberedList','BulletedList','-','Outdent','Indent','-','Blockquote','-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','-','BidiLtr','BidiRtl' ] },
- 	{ name: 'links',		items : [ 'Unlink' ] },
- 	{ name: 'insert',		items : [ 'Table','HorizontalRule','SpecialChar','PageBreak' ] },
- 	'/',
- 	{ name: 'styles',		items : [ 'Styles','Format','Font','FontSize' ] },
- 	{ name: 'colors',		items : [ 'TextColor','BGColor' ] },
- 	{ name: 'tools',		items : [ ] }
-];
-
-
-
 function generate_pdf(model, id) {
 
     var form; var form_url;
