@@ -13,7 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 class PermissionFilterMixin(object):
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name in ('permissions', 'user_permissions'):
-            qs = kwargs.get('queryset', db_field.rel.to.objects)
+            qs = kwargs.get('queryset', db_field.remote_field.model.objects)
             qs = _filter_permissions(qs)
             kwargs['queryset'] = qs
 

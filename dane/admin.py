@@ -935,9 +935,9 @@ class DocumentServiceInline(admin.TabularInline):
     verbose_name_plural = u"Załączniki i dokumenty"
     template = 'admin/edit_inline/tabular_document_ticket.html'
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         original_perm = super(DocumentServiceInline,
-                              self).has_add_permission(request)
+                              self).has_add_permission(request, obj)
         return request.user.has_perm('cmms.add_document_service') and original_perm
 
 
@@ -1227,8 +1227,8 @@ class ServiceAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         ]
         return my_urls + urls
 
-    def get_form(self, request, obj=None):
-        form = super(ServiceAdmin, self).get_form(request, obj)
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
         return form
 
@@ -1974,8 +1974,8 @@ class DocumentAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
     readonly_fields = ('person_adding',)
     form = DocumentAdminForm
 
-    def get_form(self, request, obj=None):
-        form = super(DocumentAdmin, self).get_form(request, obj)
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(DocumentAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
         return form
 
@@ -2194,92 +2194,78 @@ class DocumentAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
 
 
 class UserProfileChangeForm(UserChangeForm):
-
     class Meta:
-        model = get_user_model()
-        exclude = []
-
+        model = User
+        fields = '__all__'  # uwzględniamy wszystkie pola modelu
 
 class UserProfileCreationForm(UserCreationForm):
-
     class Meta:
-        model = get_user_model()
-        exclude = []
+        model = User
+        fields = '__all__'
 
     def clean_username(self):
-        username = self.cleaned_data["username"]
+        username = self.cleaned_data.get("username")
         try:
-            get_user_model().objects.get(username=username)
-        except get_user_model().DoesNotExist:
+            User.objects.get(username=username)
+        except User.DoesNotExist:
             return username
-        raise forms.ValidationError(self.error_messages['duplicate_username'])
+        raise forms.ValidationError("Użytkownik o takiej nazwie już istnieje.")
 
 
-class UserProfileAdmin(PermissionFilterMixin, UserAdmin):
-    model = UserProfile
-
+class UserProfileAdmin(UserAdmin):
+    model = User
     form = UserProfileChangeForm
     add_form = UserProfileCreationForm
 
-    def get_groups(self):
-        groups = self.groups.all()
-        arr = []
-        for g in groups:
-            arr.append(
-                "<nobr><a href=\"/a/auth/group/%s\">%s</a></nobr>" % (g.pk, g.name))
-        return ", ".join(arr)
-    get_groups.short_description = u"Grupy"
-    get_groups.allow_tags = True
+    fieldsets = (
+        (None, {'fields': ('username', 'password', 'email', 'first_name', 'last_name')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Skany', {'fields': ('stamp', 'signature')}),
+        ('Telefony', {'fields': ('phone',)}),
+    )
 
-    list_display = ['username', 'first_name', 'last_name',
-                    get_groups, 'email', 'is_active', 'phone']
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'email', 'first_name', 'last_name'),
+        }),
+    )
+
+    readonly_fields = ('last_login', 'date_joined')
+
+    list_display = ['username', 'first_name', 'last_name', 'email', 'is_active', 'phone']
     search_fields = ['username', 'first_name', 'last_name', 'email']
     list_filter = ['is_active', 'groups']
-    change_form_template = 'admin/dane/change_form.html'
-    change_list_template = 'admin/dane/change_list.html'
-    fieldsets = UserAdmin.fieldsets
-    #fieldsets =+ (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-
-    fieldsets += (("Skany", {'fields': ('stamp', 'signature', )}),
-                  ("Telefony", {'fields': ('phone', )}), )
 
     def save_related(self, request, form, formsets, change):
-        user = UserProfile.objects.get(username=form.cleaned_data['username'])
+        user = User.objects.get(username=form.cleaned_data['username'])
 
-        # check if groups have changed
         try:
             groups_changed = user.groups.all() != form.cleaned_data['groups']
-            permissions_changed = user.user_permissions.all(
-            ) != form.cleaned_data['user_permissions']
-        except:
+            permissions_changed = user.user_permissions.all() != form.cleaned_data['user_permissions']
+        except Exception:
             groups_changed = False
             permissions_changed = False
 
-        super(UserProfileAdmin, self).save_related(
-            request, form, formsets, change)
+        super(UserProfileAdmin, self).save_related(request, form, formsets, change)
 
-        # TOOD: check if device permissions changed before changing anything
-        # update permissions
         if groups_changed or permissions_changed:
             view_all_devices = user.has_perm("cmms.view_all_devices")
 
-            # get all locations for user and devices he/her should see
             usr_locations = user.staff.all() | user.person.all()
 
-            # update permissions for devices
             if view_all_devices:
                 user_devices = Device.objects.all()
             else:
                 user_devices = Device.objects.filter(
                     Q(location__in=usr_locations) | Q(person_responsible=user))
 
-            # get list of devices to reset
             reset_devices = get_objects_for_user(
                 user, 'cmms.view_device', accept_global_perms=False) | user_devices
 
-            # push task
-            setup_permissions.delay(user.pk, [i.pk for i in reset_devices], [
-                                    i.pk for i in user_devices])
+            setup_permissions.delay(user.pk, [i.pk for i in reset_devices], [i.pk for i in user_devices])
+
 
 
 class GroupAdmin(PermissionFilterMixin, admin.ModelAdmin):
@@ -2623,10 +2609,10 @@ dane_admin.register(CostCentre, CostCentreAdmin)
 dane_admin.register(Invoice, InvoiceAdmin)
 dane_admin.register(Location, LocationAdmin)
 dane_admin.register(Ticket, TicketAdmin)
-# dane_admin.register(Service, ServiceAdmin)
-# dane_admin.register(Document, DocumentAdmin)
-# dane_admin.register(UserProfile, UserProfileAdmin)
-# dane_admin.register(Group, GroupAdmin)
-# dane_admin.register(Hospital, HospitalAdmin)
-# dane_admin.register(Inspection, InspectionAdmin)
-# dane_admin.register(CalendarEvent, CalendarEventAdmin)
+dane_admin.register(Service, ServiceAdmin)
+dane_admin.register(Document, DocumentAdmin)
+dane_admin.register(UserProfile, UserProfileAdmin)
+dane_admin.register(Group, GroupAdmin)
+dane_admin.register(Hospital, HospitalAdmin)
+dane_admin.register(Inspection, InspectionAdmin)
+dane_admin.register(CalendarEvent, CalendarEventAdmin)
