@@ -78,47 +78,17 @@ def get_diff(self):
     return diff
 
 
-"""
+
 class DiffedHistoricalRecords(HistoricalRecords):
     def create_history_model(self, model, inherited=None):
+        # Wywołaj oryginalną metodę, aby utworzyć model historyczny
+        history_model = super().create_history_model(model, inherited)
+        # Dodaj własną metodę diff do modelu historycznego
+        history_model.add_to_class('diff', get_diff)
+        return history_model
 
-        #Creates a historical model to associate with the provided model.
-        attrs = {'__module__': self.module}
 
-        try:
-            app_config = apps.get_app_config(model._meta.app_label)
-            app_label = app_config.label
-        except LookupError:
-            app_label = model._meta.app_label
-
-        if model.__module__ != self.module:
-            attrs['__module__'] = self.module
-        else:
-            attrs['__module__'] = '%s.models' % app_label
-
-        fields = self.copy_fields(model)
-        attrs.update(fields)
-        attrs.update(self.get_extra_fields(model, fields))
-
-        class Meta:
-            pass
-
-        meta_options = self.get_meta_options(model)
-        for key, value in meta_options.items():
-            setattr(Meta, key, value)
-
-        if self.table_name is not None:
-            Meta.db_table = self.table_name
-
-        attrs['Meta'] = Meta
-        attrs['diff'] = get_diff
-
-        name = 'Historical%s' % model._meta.object_name
-        registered_models[model._meta.db_table] = model
-        return type(name, self.bases, attrs)
 """
-
-
 class DiffedHistoricalRecords(HistoricalRecords):
     def create_history_model(self, model, inherited=None):
         # Wywołanie oryginalnej metody z klasy bazowej
@@ -128,3 +98,4 @@ class DiffedHistoricalRecords(HistoricalRecords):
         history_model.add_to_class('diff', get_diff)
 
         return history_model
+"""

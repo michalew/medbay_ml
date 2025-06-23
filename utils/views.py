@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.template.defaultfilters import lower
 from django.template.loader import render_to_string, get_template
+from django.test import RequestFactory
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
@@ -14,6 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View
 from django_comments.models import Comment
 #from utils.forms import PDFForm
+import os
+from django.conf import settings
+from django.contrib.staticfiles import finders
 from xhtml2pdf import pisa
 from xlwt import Workbook
 
@@ -24,223 +28,228 @@ from utils.tasks import send_service_email
 User = get_user_model()
 
 
+# Mapowanie model_name na szablon PDF
+
 def print_admin(request, model_name):
     from dane import admin
 
-    # try to get admin class for model_name
     try:
         model = ContentType.objects.get(model=model_name.lower()).model_class()
         admin_object = admin.dane_admin._registry[model]
-    except:
-        raise Http404()
+    except ContentType.DoesNotExist:
+        raise Http404(f"Model '{model_name}' nie istnieje.")
+    except KeyError:
+        raise Http404(f"Admin dla modelu '{model_name}' nie jest zarejestrowany.")
 
-    # get object
-    object_pks = request.GET.get("objects").split(",")
+    object_pks = request.GET.get("objects")
+    if not object_pks:
+        raise Http404("Brak podanych obiektów do wydruku.")
+    object_pks = object_pks.split(",")
+
     objects = []
-
-    for object_pk in object_pks:
+    for pk in object_pks:
         try:
-            obj = model.objects.get(pk=int(object_pk))
-        except:
-            raise Http404()
-        objects.append(obj)
+            obj = model.objects.get(pk=int(pk))
+            objects.append(obj)
+        except (ValueError, model.DoesNotExist):
+            raise Http404(f"Obiekt o PK={pk} nie istnieje.")
 
-    # try to get list of options from admin
     try:
-        fieldsets = admin_object.get_printed_fieldsets(request, obj)
-    except:
-        # default to all fieldsets from admin + inlines
-        # get original fieldsets
-        original_fieldsets = admin_object.get_fieldsets(request, obj)
-
-        # convert original fieldsets to something like: [ (fieldset_name, [(field,verbose), (field, verbose),],), ]
+        fieldsets = admin_object.get_printed_fieldsets(request, objects[0])
+    except AttributeError:
+        # fallback: zbuduj fieldsets z get_fieldsets
+        original_fieldsets = admin_object.get_fieldsets(request, objects[0])
         fieldsets = []
         for fieldset in original_fieldsets:
-            # get fieldset name
-            fieldset_name = fieldset
-
-            # create empty list
+            fieldset_name, fieldset_options = fieldset
             fieldset_fields = []
-            for field in fieldset['fields']:
+            for field in fieldset_options.get('fields', []):
                 try:
-                    # assume it's a field, not a function and get field object and then it's verbose name
-                    _field = obj._meta.get_field(field)
-                    verbose = f"{str(_field.verbose_name)}"
-                except:
-                    try:
-                        verbose = getattr(obj, field).short_description
-                    except:
-                        verbose = fieldset_name
-
-                # merge field and it's verbose name into tuple and append
+                    _field = objects[0]._meta.get_field(field)
+                    verbose = str(_field.verbose_name)
+                except Exception:
+                    verbose = getattr(getattr(objects[0], field, None), 'short_description', field)
                 fieldset_fields.append((field, verbose))
-
-            # merge into tuple and append
             fieldsets.append((fieldset_name, fieldset_fields))
 
-        # support inlines
         inlines = admin_object.get_inline_instances(request)
+        excluded_inlines = getattr(admin_object, 'excluded_inlines', [])
+        for inline in inlines:
+            if inline.model.__name__ not in excluded_inlines:
+                fieldsets.append((inline.verbose_name, [(f"inline_{inline.model.__name__}", inline.verbose_name)]))
 
-        # try to get inline excludes
-        try:
-            excluded_inlines = admin_object.excluded_inlines
-        except:
-            excluded_inlines = []
-
-        for instance in inlines:
-            if instance.model.__name__ not in excluded_inlines:
-                fieldsets.append((instance.verbose_name, [(f"inline_{instance.model.__name__}", instance.verbose_name)]))
-
-        # comments block
-        if model_name == "ticket" or model_name == "service":
+        if model_name in ("ticket", "service"):
             fieldsets.append(("Komentarze", [("comments", "Komentarze")]))
+        if getattr(admin_object, 'show_history', False):
+            fieldsets.append(("Historia", [("history", "Historia zmian")]))
 
-        # inline history
-        try:
-            if admin_object.show_history:
-                fieldsets.append(("Historia", [("history", "Historia zmian")]))
-        except:
-            pass
-
-    try:
-        default_selected = admin_object.get_default_selected(request, obj)
-    except:
-        default_selected = []
-
-    try:
-        custom_filter_fields = admin_object.custom_filter_fields
-    except:
-        custom_filter_fields = []
+    default_selected = getattr(admin_object, 'get_default_selected', lambda r, o=None: [])(request, objects[0])
+    custom_filter_fields = getattr(admin_object, 'custom_filter_fields', [])
 
     if request.method == 'POST':
-        # convert request QueryDict to regular dictionary
         request_data = dict(request.POST.lists())
 
-        # assume we shouldn't show comments unless stated otherwise
         show_comments = False
-
-        # assume we shouldn't show history unless stated otherwise
         show_history = False
-
-        # assume we shouldn't show external services unless stated otherwise
         show_external_services = False
-
-        # assume we shouldn't show invoice summary unless stated otherwise
         show_invoice_summary = False
-
-        # stupid hack
         show_costbreakdown = False
 
-        inlines = []
-
+        inlines_selected = []
         selected_fieldsets = {}
-        # get all fields for fieldsets
-        for key in request_data.keys():
-            if key.startswith("fields_"):
-                if key[7:] == "Komentarze":
-                    if "comments" in request_data[key]:
-                        show_comments = True
-                elif key[7:] == "Historia":
-                    if "history" in request_data[key]:
-                        show_history = True
-                elif key[7:] == "Zlecenia" and model_name == "invoice":
-                    if "external_service" in request_data[key]:
-                        show_external_services = True
-                elif key[7:] == "Podsumowanie" and model_name == "invoice":
-                    if "invoice_summary" in request_data[key]:
-                        show_invoice_summary = True
-                else:
-                    inlines += [x[7:] for x in request_data[key] if x.startswith("inline_")]
-                    fields = [x for x in request_data[key] if not x.startswith("inline_")]
-                    selected_fieldsets[key[7:]] = {"fields": tuple(fields)}
 
-                    if "inline_CostBreakdown" in request_data[key]:
+        for key, values in request_data.items():
+            if key.startswith("fields_"):
+                section = key[7:]
+                if section == "Komentarze" and "comments" in values:
+                    show_comments = True
+                elif section == "Historia" and "history" in values:
+                    show_history = True
+                elif section == "Zlecenia" and model_name == "invoice" and "external_service" in values:
+                    show_external_services = True
+                elif section == "Podsumowanie" and model_name == "invoice" and "invoice_summary" in values:
+                    show_invoice_summary = True
+                else:
+                    inlines_selected += [v[7:] for v in values if v.startswith("inline_")]
+                    fields = [v for v in values if not v.startswith("inline_")]
+                    selected_fieldsets[section] = {"fields": tuple(fields)}
+                    if "inline_CostBreakdown" in values:
                         show_costbreakdown = True
 
         rendered = []
+        rf = RequestFactory()
 
         for obj in objects:
-            # simulate getting form
-            request.method = 'GET'
+            fake_request = rf.get("/")
+            fake_request.user = request.user
+            fake_request.session = request.session
+            fake_request.GET = request.GET.copy()
 
-            # get change_view
-            response = admin_object.change_view(request, str(obj.pk))
-
-            # make it use custom template
+            response = admin_object.change_view(fake_request, str(obj.pk))
             response.template_name = 'admin/dane/pdf_change_form.html'
 
-            # make all fields readonly
+            adminform = response.context_data['adminform']
             try:
-                response.context_data['adminform'].readonly_fields += tuple(
-                    response.context_data['adminform'].form.fields.keys())
-            except:
-                response.context_data['adminform'].readonly_fields = response.context_data['adminform']
+                adminform.readonly_fields = tuple(adminform.form.fields.keys())
+            except Exception:
+                adminform.readonly_fields = adminform
 
-            # make sure we're outputting it in the right order
-            new_fieldsets = []
-            for fieldset in response.context_data['adminform'].fieldsets:
-                # get name
-                name = fieldset
-                # check if it's already in fieldset names
-                if selected_fieldsets.get(name):
-                    new_fieldsets.append((name, selected_fieldsets[name]))
+            # wyodrębnij tylko wybrane sekcje
+            obj_selected_fieldsets = []
+            for name, fieldset in adminform.fieldsets:
+                if name in selected_fieldsets:
+                    fields_in_section = selected_fieldsets[name]["fields"]
+                    obj_selected_fieldsets.append((name, {"fields": fields_in_section}))
 
-            response.context_data['adminform'].fieldsets = new_fieldsets
+            # inline'y
+            inline_formsets = [
+                formset for formset in response.context_data.get('inline_admin_formsets', [])
+                if formset.opts.model.__name__ in inlines_selected
+                and formset.opts.model.__name__ not in getattr(admin_object, 'excluded_inlines', [])
+            ]
 
-            # make all inlines readonly
-            for formset in response.context_data['inline_admin_formsets']:
-                formset.readonly_fields = formset.fieldsets['fields']
+            for formset in inline_formsets:
+                formset.readonly_fields = formset.fieldsets[0][1].get('fields', [])
+                if formset.formset.model._meta.model_name == "devicepassport":
+                    allowed_fields = ("added_date", "content", "added_user")
+
+                    for form in formset.formset.forms:
+                        for name in list(form.fields):
+                            if name not in allowed_fields:
+                                form.fields.pop(name, None)
+                        form.initial = {k: v for k, v in form.initial.items() if k in allowed_fields}
                 formset.formset.can_delete = False
                 formset.formset.can_add = False
                 formset.formset.hide_scan = True
                 formset.original = False
-                # make sure extra forms are removed
-                for i in range(0, formset.formset.extra):
+                for _ in range(formset.formset.extra):
                     try:
-                        del formset.formset.forms[-1]
-                    except:
-                        # uhm, this is not supposed to happen
+                        formset.formset.forms.pop()
+                    except IndexError:
                         pass
-
                 if formset.formset.model._meta.model_name == "costbreakdown" and not show_costbreakdown:
-                    response.context_data['inline_admin_formsets'].remove(formset)
+                    inline_formsets.remove(formset)
 
-            # copy our custom context data to response
-            response.context_data['show_comments'] = show_comments
-            response.context_data['show_external_services'] = show_external_services
-            response.context_data['show_invoice_summary'] = show_invoice_summary
-            response.context_data['model_verbose'] = model._meta.verbose_name
+            field_values = {}
+            for section in selected_fieldsets.values():
+                for field_name in section["fields"]:
+                    try:
+                        field_object = obj._meta.get_field(field_name)
+                        value = getattr(obj, field_name)
 
-            # remove inlines that are not enabled
-            for index, inline in enumerate(response.context_data['inline_admin_formsets']):
-                if inline.opts.model.__name__ not in inlines:
-                    del response.context_data['inline_admin_formsets'][index]
+                        if field_object.is_relation:
+                            if value is None:
+                                field_values[field_name] = "–"
+                            elif field_object.many_to_many:
+                                field_values[field_name] = ", ".join(str(v) for v in value.all())
+                            else:
+                                field_values[field_name] = str(value)
+                        else:
+                            field_values[field_name] = value
 
-            # render
+                    except Exception:
+                        try:
+                            value = getattr(obj, field_name)
+                            field_values[field_name] = str(value) if value is not None else "–"
+                        except Exception:
+                            field_values[field_name] = "–"
+
+            response.context_data.update({
+                'printed_fieldsets': obj_selected_fieldsets,
+                'field_values': field_values,
+                'inline_admin_formsets': inline_formsets,
+                'show_comments': show_comments,
+                'show_external_services': show_external_services,
+                'show_invoice_summary': show_invoice_summary,
+                'model_verbose': model._meta.verbose_name,
+                'object': obj,
+            })
+
             response.render()
-
-            # create absolute path for images
             absolute_path = f"{request.META.get('HTTP_ORIGIN')}/site_media"
-
-            # replace /site_media with absolute path in rendered content
             content = response.rendered_content.replace('/site_media', absolute_path)
+            rendered.append(mark_safe(content))
 
-            # mark it as safe for Django not to escape characters in HTML code
-            content = mark_safe(content)
-
-            # append to the list of rendered objects
-            rendered.append(content)
-
-        # convert to pdf
-        html_string = render_to_string('pdf_preparation/pdf_admin_wrapper.html', {'rendered': rendered})
+        html_string = render_to_string('pdf_preparation/pdf_admin_wrapper.html', {'rendered': rendered, 'user': request.user})
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'inline; filename="document.pdf"'
-        pisa_status = pisa.CreatePDF(html_string, dest=response)
+
+        def link_callback(uri, rel):
+            """
+            Przetwarza ścieżki /static/... oraz /media/... na rzeczywiste ścieżki systemowe.
+            """
+            # ścieżka do pliku statycznego (np. czcionki)
+            if uri.startswith('/static/'):
+                path = finders.find(uri.replace('/static/', ''))
+                if path:
+                    return path
+
+            # ścieżka do mediów (np. załączniki)
+            if uri.startswith(settings.MEDIA_URL):
+                path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ''))
+                if os.path.isfile(path):
+                    return path
+
+            # absolutna ścieżka jako fallback
+            if os.path.isfile(uri):
+                return uri
+
+            raise Exception(f'Nie można odnaleźć pliku: {uri}')
+
+        pisa_status = pisa.CreatePDF(html_string, dest=response, link_callback=link_callback)
         if pisa_status.err:
-            return HttpResponse('We had some errors <pre>' + html_string + '</pre>')
+            return HttpResponse(f'Błąd podczas generowania PDF:<pre>{html_string}</pre>')
+
         return response
 
-    return render(request, 'admin/admin_print_form.html', locals())
+    return render(request, 'admin/admin_print_form.html', {
+        'fieldsets': fieldsets,
+        'default_selected': default_selected,
+        'custom_filter_fields': custom_filter_fields,
+        'model_name': model_name,
+        'objects': objects,
+        'model_verbose': model._meta.verbose_name,
+    })
 
 
 class PDFGenerateDirectly(TemplateView):

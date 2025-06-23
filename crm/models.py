@@ -159,7 +159,7 @@ class Contractor(models.Model):
         verbose_name = u'Kontrahent'
         verbose_name_plural = u'Kontrahenci'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 

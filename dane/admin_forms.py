@@ -441,7 +441,10 @@ class InvoiceItemAdminForm(forms.ModelForm):
 class InvoiceItemFormSet(BaseInlineFormSet):
     def clean(self):
         has_invoice_item = False
-        for data in self.cleaned_data:
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+            data = form.cleaned_data
             if data and not data.get('DELETE'):
                 has_invoice_item = True
                 break
@@ -564,9 +567,9 @@ class CostBreakdownForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CostBreakdownForm, self).__init__(*args, **kwargs)
         self.fields['device_name'].widget.attrs['readonly'] = True
-        self.fields['device_id'].widget.attrs['readonly'] = True
+        #self.fields['device_id'].widget.attrs['readonly'] = True
         self.fields['device_manufacturer'].widget.attrs['readonly'] = True
         self.fields['device_model'].widget.attrs['readonly'] = True
-        self.fields['device_serial_number'].widget.attrs['readonly'] = True
-        self.fields['device_inventory_number'].widget.attrs['readonly'] = True
-        self.fields['cost_center_id'].widget.attrs['readonly'] = True
+        #self.fields['device_serial_number'].widget.attrs['readonly'] = True
+        #self.fields['device_inventory_number'].widget.attrs['readonly'] = True
+        self.fields['cost_center_name'].widget.attrs['readonly'] = True

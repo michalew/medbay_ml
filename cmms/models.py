@@ -285,8 +285,8 @@ class Device(models.Model):
     # firma serwisujaca (kontrahent) - patrz Service (?)
 
     class Meta:
-        verbose_name = u'Urzadzenie'
-        verbose_name_plural = u'Urzadzenia'
+        verbose_name = u'Urządzenie'
+        verbose_name_plural = u'Urządzenia'
         ordering = ['-id', ]
 
         permissions = (
@@ -504,18 +504,18 @@ class Device(models.Model):
 class DeviceGallery(models.Model):
     """Model to store images of gallery devices."""
 
-    device = models.ForeignKey(Device, verbose_name=u"Urządzenie", on_delete=models.PROTECT)
-    image = models.ImageField(u"Zdjęcie", upload_to="devices/gallery")
+    device = models.ForeignKey(Device, verbose_name="Urządzenie", on_delete=models.PROTECT)
+    image = models.ImageField("Zdjecie", upload_to="devices/gallery")
     description = models.TextField(u"Opis", blank=True)
     is_visible = models.BooleanField(u"Czy widoczne", default=True)
     added_date = models.DateField(u"Data dodania", auto_now_add=True)
     added_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=u"Użytkownik dodający",
+        settings.AUTH_USER_MODEL, verbose_name="Użytkownik dodający",
         blank=True, null=True, on_delete=models.PROTECT)
     history = DiffedHistoricalRecords()
 
     def __str__(self):
-        return u"Zdjęcie: %s" % self.image
+        return "Zdjęcie: %s" % self.image
 
 
 class DevicePassport(models.Model):

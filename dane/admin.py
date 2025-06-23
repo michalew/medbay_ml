@@ -1,5 +1,8 @@
+from urllib.parse import unquote
+
 from django import forms
 from django.contrib.auth import get_user_model
+from django.template.response import TemplateResponse
 from django.urls import re_path
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
@@ -154,8 +157,8 @@ def remove_from_fieldsets(fieldsets, fields):
 class DeviceGalleryInline(admin.TabularInline):
     model = DeviceGallery
     template = 'admin/edit_inline/tabular_device_images.html'
-    verbose_name = u"Zdjęcie urządzenia"
-    verbose_name_plural = u"Zdjęcia urządzenia"
+    verbose_name = "Zdjecie urządzenia"
+    verbose_name_plural = "Zdjecia urzadzenia"
     fields = ("image", "description", "is_visible")
     extra = 1
     #can_delete = False
@@ -169,7 +172,7 @@ class DevicePassportInline(admin.TabularInline):
     verbose_name_plural = u"Wpisy do paszportu"
     extra = 1
     ordering = ("added_date", )
-    fields = ("added_date", "content", )
+    fields = ("added_date", "content" )
     classes = ('collapse','closed',)
 
     def has_add_permission(self, request, obj=None):
@@ -516,6 +519,35 @@ class DeviceAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         ]
         return my_urls + urls
 
+    def history_view(self, request, object_id, extra_context=None):
+        obj = self.get_object(request, unquote(object_id))
+        if obj is None:
+            raise Http404("Object does not exist")
+
+        history_manager = obj.history  # obj.history jest menedżerem historii
+
+        history = self.get_history_queryset(
+            obj,
+            history_manager,
+            obj._meta.pk.name,
+            object_id
+        )
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': f'Historia zmian: {obj}',
+            'object': obj,
+            'action_list': history,
+            'module_name': str(self.opts.verbose_name_plural),
+            'opts': self.model._meta,
+        }
+        if extra_context:
+            context.update(extra_context)
+
+        return TemplateResponse(request, 'simple_history/object_history.html', context)
+
+
+
 
 class GenreAdmin(SimpleHistoryAdmin):
     model = Genre
@@ -531,6 +563,18 @@ class DocumentTicketInline(admin.TabularInline):
     verbose_name = u"Załącznik lub dokument"
     verbose_name_plural = u"Załączniki i dokumenty"
     template = 'admin/edit_inline/tabular_document_ticket.html'
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        original_init = formset.form.__init__
+
+        def form_init(form_self, *args, **kwargs):
+            original_init(form_self, *args, **kwargs)
+            if obj and hasattr(form_self, 'instance') and not getattr(form_self.instance, 'pk', None):
+                form_self.initial['ticket'] = obj.pk
+
+        formset.form.__init__ = form_init
+        return formset
 
     def has_add_permission(self, request, obj=None):
         original_perm = super(DocumentTicketInline, self).has_add_permission(request, obj)
@@ -551,20 +595,18 @@ class TicketAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         devices = self.get_devices()
         arr = []
         for d in devices:
-            arr.append("<nobr>%s: <a href=\"/a/cmms/device/%s\">%s</a></nobr>" %
-                       (d.inventory_number, d.pk, d.name))
-        return "<br>".join(arr)
+            arr.append(f"{d.inventory_number}: <a href=\"/a/cmms/device/{d.pk}\">{d.name}</a>")
+        return mark_safe("<br>".join(arr))
     get_devices.short_description = u"Urządzenia"
-    get_devices.allow_tags = True
 
     def get_locations(self):
         devices = self.device.all()
         arr = []
         for d in devices:
-            arr.append("<nobr>%s, %s</nobr>" % (d.cost_centre, d.location))
-        return "<br>".join(arr)
+            arr.append(f"{d.cost_centre}, {d.location}")
+        return mark_safe("<br>".join(arr))
     get_locations.short_description = u"Centrum kosztowe, lokalizacja"
-    get_locations.allow_tags = True
+    #get_locations.allow_tags = True
 
     list_display = ['id', 'sort', 'priority', get_devices, get_locations, 'description', 'status',
                     'created_ticket_date', 'timestamp', 'person_creating_name', 'date_closing', 'person_closing_name', 'cost', ]
@@ -1350,8 +1392,8 @@ class InvoiceItemInline(admin.TabularInline):
 class CostBreakdownInline(admin.TabularInline):
     model = CostBreakdown
     form = CostBreakdownForm
-    exclude = ['cost_center_name',
-               'cost_center_description', 'cost_center_symbol']
+    exclude = ['cost_center_id',
+               'cost_center_description', 'cost_center_symbol', 'device_id', 'device_serial_number','device_inventory_number']
     max_num = 0
     extra = 0
 
@@ -1998,6 +2040,7 @@ class DocumentAdmin(GuardedModelAdmin, SimpleHistoryAdmin):
         resp = super(DocumentAdmin, self).response_add(
             request, obj, post_url_continue)
         return resp
+
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = {}

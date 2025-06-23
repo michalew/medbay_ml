@@ -8,6 +8,7 @@
     <script type="text/javascript" src="{% static 'old_admin/js/core.js' %}"></script>
     <script type="text/javascript" src="{% static 'old_admin/js/jquery.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'old_admin/js/jquery.init.js' %}"></script>
+    <script type="text/javascript" src="{% static 'old_admin/js/SelectBox.js' %}"></script>  {# <-- dodaj tę linię #}
     <script type="text/javascript" src="{% static 'old_admin/js/RelatedObjectLookups.js' %}"></script>
     <script type="text/javascript" src="{% static 'old_admin/js/actions.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'old_admin/js/related-widget-wrapper.js' %}"></script>
@@ -88,6 +89,34 @@
                     }
                 </script>
             {% endif %}
+            
+            <script type="text/javascript">
+    (function($) {
+        $(document).ready(function() {
+            // Przykładowy kod do zamknięcia popup po dodaniu obiektu
+            window.dismissAddRelatedObjectPopup = function(win, newId, newRepr) {
+                // Twoja niestandardowa logika, np. odświeżenie selecta i zamknięcie popup
+                var name = windowname_to_id(win.name);
+                var elem = document.getElementById(name);
+                if (!elem) {
+                    win.close();
+                    return;
+                }
+                // Przykład: dodaj nową opcję do selecta
+                var option = new Option(newRepr, newId, true, true);
+                elem.options[elem.options.length] = option;
+                if (elem.multiple) {
+                    option.selected = true;
+                } else {
+                    elem.value = newId;
+                }
+                $(elem).trigger('change');
+                win.close();
+            };
+        });
+    })(django.jQuery);
+    </script>
+            
         {% endblock %}
 
         <form {% if has_file_field %}enctype="multipart/form-data"{% endif %} action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form">
@@ -374,7 +403,7 @@
         });
     });
 </script>
-    
+
     
     
 

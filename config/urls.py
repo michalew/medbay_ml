@@ -20,6 +20,7 @@ from django.urls import path, include
 from django.urls.conf import re_path
 from rest_framework.routers import DefaultRouter
 
+import cmms
 import utils
 from cmms.views import (
     CostCentreViewSet,
@@ -35,6 +36,7 @@ from cmms.views import (
     HospitalViewSet,
     MileageViewSet, ajax_tickets, ajax_services, ajax_devices, InspectionView, InspectionAddView, CreateInspectionEvents
 )
+from utils.views import PDFPreview, PDFGenerate, PDFGenerateDirectly, GenerateXLSPreview, GenerateXLS
 from utils.widget_filter_objects import ajax_filter_services, ajax_filter_tickets, ajax_get_selected_devices, \
     ajax_get_selected_services, ajax_get_selected_tickets, ajax_filter_devices
 
@@ -75,5 +77,17 @@ urlpatterns = [
     path('get_filter_tickets', utils.widget_filter_objects.get_filter_tickets, name='get_filter_tickets'),
     path('get_filter_services', utils.widget_filter_objects.get_filter_services, name='get_filter_services'),
     path('get_filter_external_services', utils.widget_filter_objects.get_filter_external_services, name='get_filter_external_services'),
+
+    re_path(r'^manager-paszportow$', cmms.views.passport_manager, name="passport-manager"),
+
+    re_path(r'^pdf-preview/$', login_required(PDFPreview.as_view()), name='pdf-preview'),
+    re_path(r'^pdf-generate/$', login_required(PDFGenerate.as_view()), name='pdf-generate'),
+    re_path(r'^pdf-generate-directly/$', login_required(PDFGenerateDirectly.as_view()), name='pdf-generate-directly'),
+    re_path(r'^pdf-generate-admin/(.*)$', utils.views.print_admin, name='pdf-generate-admin'),
+    re_path(r'^xls-preview/$', login_required(GenerateXLSPreview.as_view()), name='xls-preview'),
+    re_path(r'^xls-generate/$', login_required(GenerateXLS.as_view()), name='xls-generate'),
+    #re_path(r'^qrcode-generate/$', cmms.views.generate_qrcodes, name='qrcode-generate'),
+    re_path(r'^save_related_objects/$', utils.widget_filter_objects.save_related_objects, name='save_related_objects'),
+
 ]
 

@@ -239,3 +239,134 @@ class CreateInspectionEvents(AjaxView, TemplateView):
             context["errors"] = errors
 
         return context
+
+def passport_manager(request):
+    model_name = request.GET.get("model")
+    if model_name not in ("service", "ticket"):
+        raise Http404("Invalid model name")
+
+    if model_name == "service":
+        model = Service
+        model_verbose_name = "zlecenia"
+    else:  # model_name == "ticket"
+        model = Ticket
+        model_verbose_name = "zgłoszenia"
+
+    object_id = request.GET.get("obj")
+    if not object_id:
+        raise Http404("Object ID not provided")
+
+    obj = get_object_or_404(model, pk=object_id)
+
+    # devices
+    if model_name == "service":
+        devices = []
+        for ticket in obj.ticket.all():
+            devices.extend(ticket.device.all())
+    else:  # ticket
+        devices = list(obj.device.all())
+
+    accessible_devices = [d for d in devices if device_access_check(request.user, d.pk)]
+
+    added_date = datetime.now()
+
+    if model_name == "ticket":
+        if obj.date_execute:
+            added_date = obj.date_execute
+    else:  # service
+        new_added_date = None
+        for ticket in obj.ticket.all():
+            if ticket.date_execute:
+                if not new_added_date or ticket.date_execute > new_added_date:
+                    new_added_date = ticket.date_execute
+        if new_added_date:
+            added_date = new_added_date
+
+    if request.method == "POST":
+        form = PassportManagerForm(request.POST)
+
+        if not request.user.has_perm("cmms.add_devicepassport"):
+            raise PermissionDenied
+
+        if form.is_valid():
+            is_service = form.cleaned_data.get("is_service", False)
+            selected_devices = form.cleaned_data["devices"].split(",")
+
+            device_objects = [d for d in accessible_devices if str(d.pk) in selected_devices]
+            # failed_device_objects not used, can be removed or logged if needed
+
+            passport_text = form.cleaned_data["text"]
+
+            for device in device_objects:
+                passport, created = DevicePassport.objects.get_or_create(
+                    device=device,
+                    defaults={
+                        "content": passport_text,
+                        "added_user": request.user,
+                        "added_date": added_date,
+                    }
+                )
+                if not created:
+                    # Update fields if object existed
+                    passport.content = passport_text
+                    passport.added_user = request.user
+                    passport.added_date = added_date
+                    passport.save()
+
+                if is_service:
+                    device.date_service = added_date
+                    device.save()
+
+            is_submitted = True
+    else:
+        company_name = "[nazwa firmy]"
+        if getattr(obj, "contractor", None):
+            company_name = obj.contractor
+        if getattr(obj, "contractor_execute", None):
+            company_name = obj.contractor_execute
+
+        person_execute = "[osoba wykonująca czynności serwisowe]"
+        sort = "[naprawę | przegląd okresowy]"
+
+        TICKET_SORT_ALTFORMS = {
+            0: "sprawdzenie",
+            1: "naprawę",
+            2: "przegląd",
+            3: "sprawdzenie bezpieczeństwa",
+            4: "aktualizację oprogramowania",
+            5: "legalizację",
+            6: "wzorcowanie",
+            7: "konserwację",
+        }
+
+        if model_name == "ticket":
+            if getattr(obj, "person_execute", None):
+                person_execute = obj.person_execute
+            if getattr(obj, "sort", None) is not None:
+                sort = TICKET_SORT_ALTFORMS.get(obj.sort, sort)
+
+        filled_template = (
+            f"Wykonano {sort} zgodnie z zaleceniami producenta.\n"
+            "Wymieniono: [podać części zamienne].\n"
+            "Nr protokołu serwisowego: [podać nr protokołu].\n"
+            "Sprzęt [sprawny | niesprawny | warunkowo dopuszczony do eksploatacji].\n"
+            "Zalecenia serwisowe: [podać zalecenia].\n"
+            "Data następnej czynności serwisowej: [podać przybliżoną datę].\n\n"
+            f"{person_execute} / {company_name}\n"
+            f"Nr powiązanego {model_verbose_name} #{obj.pk}"
+        )
+
+        form = PassportManagerForm(initial={"text": filled_template, "is_service": model_name == "ticket"})
+        is_submitted = False
+
+    context = {
+        "form": form,
+        "is_submitted": locals().get("is_submitted", False),
+        "model_name": model_name,
+        "obj": obj,
+        "model_verbose_name": model_verbose_name,
+        "accessible_devices": accessible_devices,
+    }
+
+    return render(request, "passport-manager.html", context)
+

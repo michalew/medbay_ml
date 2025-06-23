@@ -1,9 +1,10 @@
 {% extends "admin/dane/change_form.html" %}
 {% load i18n %}
+{% load admin_urls %}
 
 {% block object-tools-items %}
 {% if perms.guardian.change_userobjectpermission or perms.guardian.change_groupobjectpermission %}
-<li><a href="permissions/" class="permissionslink">Uprawnienia obiektu</a></li>
+<li><a href="{% url opts|admin_urlname:'permissions' original.pk|admin_urlquote %}" class="permissionslink">Uprawnienia obiektu</a></li>
 {% endif %}
 {{ block.super }}
 {% endblock %}

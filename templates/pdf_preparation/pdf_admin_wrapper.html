@@ -66,6 +66,21 @@
             margin-bottom: 5px;
             background: white;
         }
+        
+        @font-face {
+    font-family: 'DejaVu';
+    src: url('/static/fonts/DejaVuSans.ttf');
+  }
+
+  body {
+    font-family: 'DejaVu', sans-serif;
+  }
+
+  table {
+    font-family: 'DejaVu', sans-serif;
+    font-size: 12pt;
+  }
+        
     </style>
 </head>
 
@@ -80,7 +95,7 @@
         <i>
             medCMMS – wydruk z systemu<br />
             data wydruku: {% now "Y-m-d" %}<br />
-            wydrukowany przez: {{ request.user.get_full_name }}
+            wydrukowany przez: {{ user.get_full_name }}
         </i>
     </div>
     </p>

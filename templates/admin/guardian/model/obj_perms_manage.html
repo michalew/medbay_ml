@@ -47,6 +47,7 @@
                 </thead>
                 <tbody>
                     {% for user, user_perms in users_perms.items %}
+                        {{ user|pprint }}
                     <tr>
                         <td>{{ user }}</td>
                         {% for perm in model_perms %}
