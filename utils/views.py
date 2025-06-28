@@ -325,7 +325,7 @@ class PDFGenerateDirectly(TemplateView):
 
 
 
-class PDFGenerate(View):
+class PDFGenerate(TemplateView):
     """Generic view to generate PDF by xhtml2pdf library."""
 
     template_name = 'pdf_generate_template.html'
@@ -373,8 +373,13 @@ class PDFGenerate(View):
         model_name = self.request.POST.get('model')
 
         ids = self.request.POST.get('ids')
-        if ids:
-            ids = [int(id) for id in ids.split(",")]
+        if ids and ids.lower() != 'none':
+            try:
+                ids_list = [int(i) for i in ids.split(",")]
+            except ValueError:
+                ids_list = []
+        else:
+            ids_list = []
 
         if model_name == 'Passport':
             self.filename = 'paszport.pdf'
@@ -469,14 +474,19 @@ class PDFGenerate(View):
             return HttpResponseRedirect("/serwis")
 
     def get_context_data(self, **kwargs):
-        """Generate PDF from edited text by CKEditor. Return context."""
-
         context = super(PDFGenerate, self).get_context_data(**kwargs)
 
-        body_pdf = self.request.POST.get('body_pdf')
+        ids = self.request.POST.get('ids') or self.request.GET.get('ids')
+        if ids and ids.lower() != 'none':
+            try:
+                ids_list = [int(i) for i in ids.split(",")]
+            except ValueError:
+                ids_list = []
+        else:
+            ids_list = []
 
-        if body_pdf:
-            context['body_pdf'] = mark_safe(body_pdf)
+        context['ids'] = ids_list
+        # dalsza logika...
 
         return context
 

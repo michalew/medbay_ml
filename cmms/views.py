@@ -1,24 +1,85 @@
+import datetime
+
+from django.db.models import F
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, FormView
 from guardian.decorators import permission_required_or_403
-
-# Create your views here.
+from django_sendfile import sendfile# Create your views here.
 from rest_framework import viewsets, permissions
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
-from cmms.models import Device, Genre, Make, Mileage, Ticket, Service
+from cmms.models import Device, Genre, Make, Mileage, Ticket, Service, DevicePassport, TicketForm, Document
 from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile, Hospital
 from utils.datatables import generate_datatables_records, user_name_annotation
 from utils.inspection_utils import create_planned_ticket
 from utils.view_mixins import AjaxView
-from .forms import InspectionEventForm, InspectionForm
+from .forms import InspectionEventForm, InspectionForm, PassportManagerForm
 from .serializers import ContractorSerializer, CostCentreSerializer, LocationSerializer,InvoiceSerializer, UserProfileSerializer, HospitalSerializer, GenreSerializer, MakeSerializer, DeviceSerializer, MileageSerializer, TicketSerializer, ServiceSerializer
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from guardian.shortcuts import get_objects_for_user
+from django.http import HttpResponse, Http404
+from guardian.shortcuts import get_objects_for_user
+from django.core.exceptions import PermissionDenied
 
 # Pobranie zmodyfikowanego modelu użytkownika
 User = get_user_model()
+
+
+@login_required
+def home(request):
+    try:
+        user = UserProfile.objects.get(username=request.user.username)
+    except UserProfile.DoesNotExist:
+        user = request.user
+
+    can_view_all_devices = user.has_perm('cmms.view_all_devices')
+
+    usr_locations = []
+
+    groups = list(user.groups.values_list('name', flat=True))
+    user_groups = ", ".join(groups)
+
+    devices_all = get_objects_for_user(
+        user, "cmms.view_device", accept_global_perms=False)
+    devices_all_count = devices_all.count()
+
+    devices_broken = devices_all.filter(status=4)
+    devices_broken_count = devices_broken.count()
+
+    latest_tickets = Ticket.objects.filter(
+        Q(status__in=[0, 1]) &
+        (Q(person_creating=request.user) | Q(device__in=devices_all))
+    ).order_by('-timestamp').distinct()
+
+    arr = list(latest_tickets.values_list('pk', flat=True))
+
+    opened_services = Service.objects.filter(
+        status__in=[0, 1], ticket__id__in=arr).order_by('-timestamp')
+    opened_services_count = opened_services.count()
+
+    # check if we need to display "Zobacz wszystkie" link
+    show_more_devices_link = devices_all_count > 15
+    if show_more_devices_link:
+        devices_all = devices_all[:15]
+
+    show_more_broken_link = devices_broken_count > 15
+    if show_more_broken_link:
+        devices_broken = devices_broken[:15]
+
+    show_more_services_link = opened_services_count > 15
+    if show_more_services_link:
+        opened_services = opened_services[:15]
+
+    show_more_tickets_link = latest_tickets.count() > 15
+    if show_more_tickets_link:
+        latest_tickets = latest_tickets[:15]
+
+    context = locals()
+    return render(request, 'home.html', context)
 
 
 class CostCentreViewSet(viewsets.ModelViewSet):
@@ -109,6 +170,8 @@ class MileageViewSet(viewsets.ModelViewSet):
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+    permission_classes = [permissions.DjangoModelPermissions]
+
 
     def get_queryset(self):
         user = self.request.user
@@ -224,6 +287,8 @@ class InspectionAddView(AjaxView, FormView):
 
 
 class CreateInspectionEvents(AjaxView, TemplateView):
+    template_name = "inspections/new_inspection.html"  # podaj właściwą ścieżkę do szablonu
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -370,3 +435,157 @@ def passport_manager(request):
 
     return render(request, "passport-manager.html", context)
 
+
+@login_required
+def new_ticket(request):
+    ticket_id = request.GET.get('id')
+    ticket = None
+    devices = None
+
+    if ticket_id:
+        ticket = get_object_or_404(Ticket, pk=ticket_id)
+        devices = ticket.device.all()
+        form = TicketForm(instance=ticket)
+    else:
+        form = TicketForm()
+
+    if ticket:
+        our_devices = get_objects_for_user(
+            request.user, 'cmms.view_device', accept_global_perms=False
+        )
+        matches = [x for x in devices if x in our_devices]
+        if not matches:
+            raise PermissionDenied
+    else:
+        if not request.user.has_perm('cmms.add_ticket'):
+            raise PermissionDenied
+
+    context = {
+        'ticket': ticket,
+        'devices': devices,
+        'form': form,
+    }
+    return render(request, 'new-ticket.html', context)
+
+@login_required
+def preview_device(request):
+    device_id = request.GET.get('id')
+    if not device_id:
+        raise Http404()
+
+    if not device_access_check(request.user, device_id):
+        raise PermissionDenied
+
+    device = get_object_or_404(Device, pk=int(device_id))
+
+    if not request.user.has_perm('cmms.view_device', device):
+        raise PermissionDenied
+
+    context = {
+        'device': device,
+    }
+    return render(request, 'device-preview.html', context)
+
+
+@login_required
+def ticket_preview(request, ticket_id):
+    devices = get_objects_for_user(
+        request.user, 'cmms.view_device', accept_global_perms=False)
+    tickets = Ticket.objects.filter(device__in=devices).distinct()
+
+    ticket = get_object_or_404(tickets, pk=ticket_id)
+
+    # check if user has permissions for viewing this form
+    # (get_object_or_404 already raises 404 if not found)
+    # If you want to check additional permission, do it here:
+    # if not request.user.has_perm('some_permission', ticket):
+    #     raise PermissionDenied
+
+    context = {
+        'ticket': ticket,
+    }
+    return render(request, 'ticket-preview.html', context)
+
+
+@login_required
+def service_preview(request, service_id):
+    devices = get_objects_for_user(
+        request.user, 'cmms.view_device', accept_global_perms=False)
+    tickets = Ticket.objects.filter(device__in=devices).distinct()
+    services = Service.objects.filter(ticket__in=tickets).distinct()
+
+    service = get_object_or_404(services, pk=service_id)
+
+    # check if user has permissions for viewing this form
+    # if not request.user.has_perm('some_permission', service):
+    #     raise PermissionDenied
+
+    context = {
+        'service': service,
+    }
+    return render(request, 'service-preview.html', context)
+
+
+@login_required
+def mileage_preview(request, mileage_id):
+    mileage = get_object_or_404(Mileage, pk=mileage_id)
+
+    # check permissions for device
+    if not device_access_check(request.user, mileage.device.id):
+        raise PermissionDenied
+
+    history = mileage.history.all().order_by('-pk')
+
+    context = {
+        'mileage': mileage,
+        'history': history,
+    }
+    return render(request, 'mileage-preview.html', context)
+
+@login_required
+def ajax_inspections(request):
+    devices = get_objects_for_user(
+        request.user, "cmms.view_device", accept_global_perms=False
+    )
+
+    queryset = devices.filter(Q(ticket__sort=2) | Q(ticket__sort=7)).order_by('-id').distinct().annotate(
+        ticket_id=F("ticket__pk"),
+        person_execute=user_name_annotation("ticket__person_execute"),
+    ).annotate(**{
+        field.split("__")[0]: F(f"ticket__{field}")
+        for field in [
+            "from_which_inspection",
+            "planned_date_execute",
+            "inspection_type",
+            "date_execute",
+            "contractor_execute__name",
+            "description",
+        ]
+    })
+
+    columnIndexNameMap = {"lp_device": "id"}
+
+    return generate_datatables_records(
+        request, queryset, columnIndexNameMap, 'datatables/json_inspections.txt'
+    )
+
+
+@login_required
+def download_document(request, document_id):
+    """Downloads a document with given ID"""
+    document = get_object_or_404(Document.objects.for_user(request.user), pk=document_id)
+    if document.scan:
+        return sendfile(request, document.scan.path)
+    raise Http404()
+
+
+def device_access_check(user, device_id):
+    """
+    Returns True if user has access to device, otherwise False.
+    """
+    if device_id and user and user.is_authenticated:
+        devices = get_objects_for_user(
+            user, "cmms.view_device", accept_global_perms=False
+        )
+        return devices.filter(pk=int(device_id)).exists()
+    return False

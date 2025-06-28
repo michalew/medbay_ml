@@ -1,4 +1,3 @@
-# coding=utf-8
 from cmms.models import Ticket, Device, Document
 
 # models from which event to calendar are created
@@ -21,7 +20,7 @@ event_type_fields = {
             'event_name': 'ticket-start-planned-range',
             'date_field': ['timestamp', 'planned_date_execute'],
             'title': {
-                'text': f'Zgłoszenie {id}, czas od założenia do planowanej daty wykonania',
+                'text': 'Zgłoszenie %s, czas od założenia do planowanej daty wykonania',
                 'fields': ['id'],
             }
         },
@@ -29,7 +28,7 @@ event_type_fields = {
             'event_name': 'ticket-start-execute-range',
             'date_field': ['timestamp', 'date_execute'],
             'title': {
-                'text': f'Zgłoszenie {id}, czas od założenia do wykonania',
+                'text': 'Zgłoszenie %s, czas od założenia do wykonania',
                 'fields': ['id'],
             }
         },
@@ -63,7 +62,7 @@ event_type_fields = {
             'event_name': 'device-warranty',
             'date_field': 'date_warranty',
             'title': {
-                'text': f'Koniec gwarancji urządzenia <a href="/a/cmms/device/{id}">{name}</a>',
+                'text': 'Koniec gwarancji urządzenia <a href="/a/cmms/device/%s">%s</a>',
                 'fields': ['id', 'name'],
             }
         },

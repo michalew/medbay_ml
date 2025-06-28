@@ -16,7 +16,7 @@
 {% for f in form %}
 {% if user.pielegniarka %}
 {% if f.name not in "cyclic status" %}<tr><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{{ f }}</td></tr>{% endif %}
-{% ifequal f.name "status" %}<input name="{{ f.name }}" type="hidden" value="0" />{% endifequal %}
+{% if f.name == "status" %}<input name="{{ f.name }}" type="hidden" value="0" />{% endif %}
 {% else %}
 <tr><th>{{ f.label }}</th><td>{% if f.errors %}{{ f.errors }}{% endif %}{{ f }}</td></tr>
 {% endif %}

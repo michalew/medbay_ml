@@ -16,13 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import views as auth_views, logout
+from django.shortcuts import redirect
 from django.urls import path, include
 from django.urls.conf import re_path
 from rest_framework.routers import DefaultRouter
 
+
 import cmms
 import utils
+from cmms import charts
 from cmms.views import (
+    home,
     CostCentreViewSet,
     LocationViewSet,
     ContractorViewSet,
@@ -40,6 +45,13 @@ from utils.views import PDFPreview, PDFGenerate, PDFGenerateDirectly, GenerateXL
 from utils.widget_filter_objects import ajax_filter_services, ajax_filter_tickets, ajax_get_selected_devices, \
     ajax_get_selected_services, ajax_get_selected_tickets, ajax_filter_devices
 
+class LogoutGetAllowedView(auth_views.LogoutView):
+    http_method_names = ['get', 'post']
+
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect(self.next_page or '/')
+
 # Router dla API v1
 router = DefaultRouter()
 router.register(r'v1/cost_centre', CostCentreViewSet)
@@ -55,10 +67,18 @@ router.register(r'v1/service', ServiceViewSet)
 router.register(r'v1/hospital', HospitalViewSet)
 router.register(r'v1/mileage', MileageViewSet)
 
+
 from dane.admin import dane_admin
 urlpatterns = [
     path('admin/', dane_admin.urls),
+    path('a/', dane_admin.urls),
+    path('login/', auth_views.LoginView.as_view(template_name='admin/login.html'), name='login'),
+    path('logout/', LogoutGetAllowedView.as_view(template_name= 'registration/logged_out.html'), name='logout'),
+    path('', home, name='home'),
     path('api/', include(router.urls)),
+    path('api/ticket-graph/', charts.tickets, name='api_tickets_chart'),
+    re_path(r'^api/device-class/$', charts.device_class, name="api_device_class_chart"),
+    re_path(r'^api/cost-graph/$', charts.cost_chart, name="api_cost_chart"),
     path('crm/', include('crm.urls')),
     path('koszty/', include('costs.urls')),
     path('ajax/devices', ajax_devices, name='ajax_devices'),
@@ -78,8 +98,15 @@ urlpatterns = [
     path('get_filter_services', utils.widget_filter_objects.get_filter_services, name='get_filter_services'),
     path('get_filter_external_services', utils.widget_filter_objects.get_filter_external_services, name='get_filter_external_services'),
 
-    re_path(r'^manager-paszportow$', cmms.views.passport_manager, name="passport-manager"),
+    re_path(r'^podglad-urzadzenia$', cmms.views.preview_device),
+    re_path(r'^podglad-zgloszenia/(?P<ticket_id>[0-9]+)$', cmms.views.ticket_preview, name='ticket_preview'),
+    re_path(r'^podglad-zlecenia/(?P<service_id>[0-9]+)$', cmms.views.service_preview, name='service_preview'),
+    re_path(r'^podglad-licznika/(?P<mileage_id>[0-9]+)$', cmms.views.mileage_preview, name='mileage_preview'),
+    re_path(r'^pobierz-dokument/(?P<document_id>[0-9]+)$',cmms.views.download_document, name='download_document'),
+    re_path(r'^ajax/inspections/$', cmms.views.ajax_inspections, name='ajax_inspections'),
 
+    re_path(r'^manager-paszportow$', cmms.views.passport_manager, name="passport-manager"),
+    re_path(r'^nowe-zgloszenie$', cmms.views.new_ticket),
     re_path(r'^pdf-preview/$', login_required(PDFPreview.as_view()), name='pdf-preview'),
     re_path(r'^pdf-generate/$', login_required(PDFGenerate.as_view()), name='pdf-generate'),
     re_path(r'^pdf-generate-directly/$', login_required(PDFGenerateDirectly.as_view()), name='pdf-generate-directly'),

@@ -53,6 +53,17 @@ INSTALLED_APPS = [
 
 ]
 
+REST_FRAMEWORK = {
+         'DEFAULT_AUTHENTICATION_CLASSES': (
+             'rest_framework.authentication.SessionAuthentication',
+             'rest_framework.authentication.BasicAuthentication',
+             # lub inne, np. TokenAuthentication
+         ),
+         'DEFAULT_PERMISSION_CLASSES': (
+             'rest_framework.permissions.DjangoModelPermissions',
+         ),
+     }
+
 SITE_ID = 1
 DOMAIN_NAME = "localhost:8000"
 DEFAULT_FROM_EMAIL = 'automat@medbay.pl'
@@ -141,7 +152,7 @@ USE_TZ = True
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "site_media/u")
-SENDFILE_BACKEND = 'sendfile.backends.development'
+SENDFILE_BACKEND = 'sendfile.backends.simple'
 SENDFILE_ROOT = os.path.join(PROJECT_ROOT, 'protected_site_media')
 SENDFILE_URL = '/site_media/protected'
 
@@ -169,3 +180,8 @@ STATICFILES_DIRS = (
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+
+

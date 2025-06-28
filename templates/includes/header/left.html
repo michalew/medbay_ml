@@ -11,7 +11,7 @@
 <li><a href="#">Narzędzia</a>
     <ul>
         {% if perms.cmms.add_ticket %}
-        <li><a class="headerTicketBtn"{% if device.pk %} data-device="{{ device.pk }}"{% endif %} href="#">Nowe zgłoszenie</a></li>
+        <li><a class="headerTicketBtn"{% if device.pk %} data-device="{{ device.pk }}"{% endif %} href="/admin/cmms/ticket/add/">Nowe zgłoszenie</a></li>
         {% endif %}
         {% if perms.cmms.add_device %}
         <li class="hide-mobile"><a id="XaddDevice" target="_blank" href="{% url 'admin:cmms_device_add' %}">Dodaj urządzenie</a></li>
@@ -26,7 +26,6 @@
     </ul>
 </li>
 <li class="hide-mobile"><a href="#">Baza danych</a>
-{% if False %}
     <ul>
         {% if perms.cmms.change_device %}
             <li><a href="{% url 'admin:cmms_device_changelist' %}">Urzadzenia</a></li>
@@ -62,13 +61,11 @@
             <li><a href="{% url 'admin:crm_location_changelist' %}">Lokalizacje</a></li>
         {% endif %}
     </ul> 
-{% endif %}
 
 </li>
 {% if perms.crm.change_userprofile or perms.auth.change_group %}
 <li class="hide-mobile"><a href="#">Użytkownicy</a>
     <ul>
-    {% if False %}
         {% if perms.crm.change_userprofile %}
         <li style="{% if request.path == '/a/crm/userprofile/' %} text-decoration: underline;{% endif %}"><a href="{% url 'admin:crm_userprofile_changelist' %}">Użytkownicy</a></li>
         {% endif %}
@@ -80,4 +77,3 @@
 
     </ul>
 </li>
-{% endif %}
