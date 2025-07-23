@@ -1,16 +1,19 @@
 import datetime
-
+from django.contrib import messages
 from django.db.models import F
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, FormView
 from guardian.decorators import permission_required_or_403
 from django_sendfile import sendfile# Create your views here.
 from rest_framework import viewsets, permissions
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
+from rest_framework.permissions import AllowAny
+
 from cmms.models import Device, Genre, Make, Mileage, Ticket, Service, DevicePassport, TicketForm, Document
 from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile, Hospital
 from utils.datatables import generate_datatables_records, user_name_annotation
@@ -167,10 +170,21 @@ class MileageViewSet(viewsets.ModelViewSet):
         return Mileage.objects.filter(device__in=devices)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-    permission_classes = [permissions.DjangoModelPermissions]
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+
+    def dispatch(self, request, *args, **kwargs):
+        print(f"Metoda: {request.method}, Body: {request.body}")
+        return super().dispatch(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        print("Dane POST:", request.data)  # wypisze dane w konsoli serwera
+        return super().create(request, *args, **kwargs)
 
 
     def get_queryset(self):
@@ -436,36 +450,67 @@ def passport_manager(request):
     return render(request, "passport-manager.html", context)
 
 
-@login_required
 def new_ticket(request):
-    ticket_id = request.GET.get('id')
     ticket = None
-    devices = None
+    if request.method == 'POST':
+        ticket_id = request.POST.get('id')
+        if ticket_id:
+            ticket = Ticket.objects.filter(pk=ticket_id).first()
+        form = TicketForm(request.POST, instance=ticket)
+        if form.is_valid():
+            ticket = form.save(commit=False)
 
-    if ticket_id:
-        ticket = get_object_or_404(Ticket, pk=ticket_id)
-        devices = ticket.device.all()
-        form = TicketForm(instance=ticket)
+            # Sprawdzenie uprawnień
+            if ticket.pk:
+                # Edycja istniejącego zgłoszenia
+                our_devices = get_objects_for_user(
+                    request.user, 'cmms.view_device', accept_global_perms=False)
+                devices = ticket.device.all()
+                matches = [x for x in devices if x in our_devices]
+                if len(matches) < 1:
+                    raise PermissionDenied
+            else:
+                # Tworzenie nowego zgłoszenia
+                if not request.user.has_perm('cmms.add_ticket'):
+                    raise PermissionDenied
+
+            ticket.save()
+            form.save_m2m()  # jeśli formularz ma pola ManyToMany
+
+            messages.success(request, "Zgłoszenie zostało zapisane.")
+            return redirect('some_view_name')  # zmień na odpowiednią nazwę widoku lub URL
+        else:
+            # Formularz niepoprawny, wyświetl błędy
+            pass
     else:
-        form = TicketForm()
+        ticket_id = request.GET.get('id')
+        if ticket_id:
+            ticket = Ticket.objects.filter(pk=ticket_id).first()
+            devices = ticket.device.all() if ticket else []
+            form = TicketForm(instance=ticket)
+        else:
+            form = TicketForm()
 
+    # Sprawdzenie uprawnień dla GET
     if ticket:
         our_devices = get_objects_for_user(
-            request.user, 'cmms.view_device', accept_global_perms=False
-        )
+            request.user, 'cmms.view_device', accept_global_perms=False)
+        devices = ticket.device.all()
         matches = [x for x in devices if x in our_devices]
-        if not matches:
+        if len(matches) < 1:
             raise PermissionDenied
     else:
         if not request.user.has_perm('cmms.add_ticket'):
             raise PermissionDenied
 
     context = {
-        'ticket': ticket,
-        'devices': devices,
         'form': form,
+        'ticket': ticket,
+        'devices': devices if ticket else [],
     }
     return render(request, 'new-ticket.html', context)
+
+
 
 @login_required
 def preview_device(request):
@@ -589,3 +634,19 @@ def device_access_check(user, device_id):
         )
         return devices.filter(pk=int(device_id)).exists()
     return False
+
+@login_required
+def devices(request):
+    add_ticket = request.GET.get('at')
+    new_device = request.GET.get('new_device')
+    device_id = request.GET.get('device_id')
+    devices_group_id = request.GET.get('devices_group_id')
+
+    context = {
+        'add_ticket': add_ticket,
+        'new_device': new_device,
+        'device_id': device_id,
+        'devices_group_id': devices_group_id,
+    }
+
+    return render(request, 'devices.html', context)

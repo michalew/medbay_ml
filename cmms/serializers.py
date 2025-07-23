@@ -75,10 +75,25 @@ class MileageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
 class TicketSerializer(serializers.ModelSerializer):
-    person_creating = UserProfileSerializer()
-    person_closing = UserProfileSerializer()
-    device = DeviceSerializer(many=True)
+    person_creating = serializers.HyperlinkedRelatedField(
+        queryset=UserProfile.objects.all(),
+        view_name='userprofile-detail'
+    )
+    device = serializers.HyperlinkedRelatedField(
+        many=True,
+        queryset=Device.objects.all(),
+        view_name='device-detail'
+    )
+
+    created_ticket_date = serializers.DateTimeField(read_only=True)
+    timestamp = serializers.DateField(read_only=True)
+    date_closing = serializers.DateField(read_only=True)
+    date_finish = serializers.DateField(read_only=True)
+    planned_date_finish = serializers.DateField(read_only=True)
+    planned_date_execute = serializers.DateField(read_only=True)
+    date_execute = serializers.DateField(read_only=True)
 
     class Meta:
         model = Ticket

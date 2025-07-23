@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 
 def check_if_field_is_history(obj: object, key: str) -> dict[str, object | bool | None]:
@@ -46,86 +46,89 @@ def check_if_field_is_history(obj: object, key: str) -> dict[str, object | bool 
 
 
 def get_field_properties(obj: object, key: str, value: object = None) -> dict[str, object | bool | None]:
-    """
-    Retrieves properties of a specified field or function in an object.
-
-    :param obj: The object containing the field or function.
-    :param key: The name of the field or function.
-    :param value: The value of the field or function (optional).
-    :return: A dictionary with 'verbose_name', 'field', 'is_choices', 'is_function', 'value', and 'is_m2m_field'.
-
-
-    :return: A dictionary containing field properties, such as 'verbose_name' (str), 'field' (Field | None), etc.
-    """
-    # prepare variables
     verbose_name = ""
     field = None
     is_choices = False
     is_function = False
     is_m2m_field = False
 
-    # get obj field list
     field_list = [x.name for x in obj._meta.fields]
     is_function = key not in field_list
 
-    # set value
+    # Ustaw wartość
     if is_function:
-        # execute function
-        value = str(getattr(obj, key)())
-        value = str(getattr(obj, key))
+        # Jeśli to funkcja, wywołaj ją i pobierz wynik
+        try:
+            value = getattr(obj, key)()
+        except Exception:
+            # Jeśli wywołanie funkcji się nie uda, pobierz atrybut jako string
+            value = getattr(obj, key)
+    else:
+        # Jeśli wartość nie została przekazana, pobierz ją z obiektu
+        if value is None:
+            value = getattr(obj, key, None)
 
     try:
-        # assume it's a field, not a function and get field object and then it's verbose name
         field = obj._meta.get_field(key)
-        # this field might be a list of choices, like status or something
         try:
             is_choices = bool(field.choices)
         except AttributeError:
             pass
         verbose_name = f"{field.verbose_name}"
-
     except (AttributeError, ValueError, TypeError):
         if is_function:
-            # get function description as verbose name
-            verbose_name = f"{getattr(obj, key).short_description}"
+            # Jeśli funkcja ma short_description, użyj go jako verbose_name
+            func = getattr(obj, key, None)
+            if func and hasattr(func, "short_description"):
+                verbose_name = func.short_description
+            else:
+                verbose_name = key
         else:
-            # fallback to key
-            verbose_name = f"{key}"
+            verbose_name = key
 
     try:
-        # check if field is m2m
-        if value and field.related_model:
+        if value and field and hasattr(field, "related_model"):
             if field.related_model.objects.filter(pk=value).exists():
                 is_m2m_field = True
     except AttributeError:
         pass
 
-    # get current choice if is_choices
     if is_choices:
-        value = f"{getattr(obj, f'get_{field.name}_display')()}"
-    # Process the current choice if the field has choices
+        try:
+            value = getattr(obj, f'get_{field.name}_display')()
+        except Exception:
+            pass
 
-    # Format output
+    # Formatowanie wartości
     try:
-        value = str(value or "").replace("None", "").strip()
+        # Zamiana None na pusty string
+        value_str = str(value or "").strip()
+    except Exception:
+        value_str = ""
 
-    except ValueError:
-        pass
+    # Próba konwersji na Decimal tylko jeśli wartość wygląda na liczbę
     try:
-        Decimal(value)
-        value = str(value).replace(".", ",")
-
-    except ValueError:
+        # Sprawdź, czy wartość jest liczbą lub stringiem reprezentującym liczbę
+        if isinstance(value, (int, float, Decimal)):
+            dec_value = Decimal(value)
+            # Zamień kropkę na przecinek w stringu
+            value_str = str(dec_value).replace(".", ",")
+        else:
+            # Spróbuj skonwertować string na Decimal
+            dec_value = Decimal(value_str)
+            value_str = str(dec_value).replace(".", ",")
+    except (InvalidOperation, ValueError):
+        # Jeśli konwersja się nie uda, zostaw oryginalny string
         pass
 
-    if value == "":
-        value = "-----"
+    if value_str == "":
+        value_str = "-----"
 
     return {
         "verbose_name": verbose_name,
         "field": field,
-        "is_choices": is_choices != False,
         "is_choices": is_choices,
-        "value": value,
+        "is_function": is_function,
+        "value": value_str,
         "is_m2m_field": is_m2m_field,
     }

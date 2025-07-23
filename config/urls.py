@@ -44,6 +44,7 @@ from cmms.views import (
 from utils.views import PDFPreview, PDFGenerate, PDFGenerateDirectly, GenerateXLSPreview, GenerateXLS
 from utils.widget_filter_objects import ajax_filter_services, ajax_filter_tickets, ajax_get_selected_devices, \
     ajax_get_selected_services, ajax_get_selected_tickets, ajax_filter_devices
+from reminders import urls as reminders_urls
 
 class LogoutGetAllowedView(auth_views.LogoutView):
     http_method_names = ['get', 'post']
@@ -75,6 +76,8 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='admin/login.html'), name='login'),
     path('logout/', LogoutGetAllowedView.as_view(template_name= 'registration/logged_out.html'), name='logout'),
     path('', home, name='home'),
+    path('serwis', cmms.views.devices, name='devices'),
+
     path('api/', include(router.urls)),
     path('api/ticket-graph/', charts.tickets, name='api_tickets_chart'),
     re_path(r'^api/device-class/$', charts.device_class, name="api_device_class_chart"),
@@ -91,6 +94,7 @@ urlpatterns = [
     path('ajax/get-selected-services', ajax_get_selected_services, name='ajax_get_selected_services'),
     path('ajax/get-selected-tickets', ajax_get_selected_tickets, name='ajax_get_selected_tickets'),
     path('przeglady', login_required(InspectionView.as_view()), name='inspections'),
+    path('kalendarz/', include(reminders_urls)),
     path('przeglady/nowy', login_required(InspectionAddView.as_view()), name='inspection-add'),
     path('utworz-zdarzenia', login_required(CreateInspectionEvents.as_view()), name='create-inspection-events'),
     path('get_filter_devices', utils.widget_filter_objects.get_filter_devices, name='get_filter_devices'),

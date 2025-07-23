@@ -754,6 +754,7 @@ class Ticket(models.Model):
             ("view_ticket_chart", u"Może oglądać wykres zgłoszeń"),
         )
 
+
     def get_absolute_url(self):
         return "/a/cmms/ticket/%d" % self.id
 
@@ -786,6 +787,21 @@ class Ticket(models.Model):
         if not self.planned_date_execute:
             now = datetime.now()
             self.planned_date_execute = now + relativedelta(days=7)
+
+        # 🛡️ Konwersje datetime -> date dla pól DateField
+        date_fields = [
+            'timestamp',
+            'date_closing',
+            'date_finish',
+            'planned_date_finish',
+            'planned_date_execute',
+            'date_execute',
+        ]
+        for field in date_fields:
+            value = getattr(self, field)
+            if isinstance(value, datetime):
+                setattr(self, field, value.date())
+
         super(Ticket, self).save(*args, **kwargs)
 
     def person_creating_name(self):
