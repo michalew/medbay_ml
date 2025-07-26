@@ -255,6 +255,30 @@ def print_admin(request, model_name):
 class PDFGenerateDirectly(TemplateView):
     """Generic view to directly generate PDF by xhtml2pdf library."""
 
+    @staticmethod
+    def link_callback(uri, rel, *args):
+        """
+        Przetwarza ścieżki URI w HTML na ścieżki systemowe,
+        aby xhtml2pdf mógł załadować pliki (czcionki, obrazy, css).
+        """
+        # Ścieżka do plików statycznych (np. czcionki, css, obrazy)
+        if uri.startswith(settings.STATIC_URL):
+            path = finders.find(uri.replace(settings.STATIC_URL, ""))
+            if path:
+                return path
+
+        # Ścieżka do plików mediów (np. uploady)
+        if uri.startswith(settings.MEDIA_URL):
+            path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+            if os.path.isfile(path):
+                return path
+
+        # Jeśli uri jest ścieżką absolutną i plik istnieje
+        if os.path.isfile(uri):
+            return uri
+
+        raise Exception(f"Nie można odnaleźć pliku: {uri}")
+
     filename = 'ep_medbay.pdf'
 
     def get(self, request, *args, **kwargs):
@@ -271,7 +295,7 @@ class PDFGenerateDirectly(TemplateView):
         html_string = render_to_string(self.template_name, context)
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'inline; filename="{self.filename}"'
-        pisa_status = pisa.CreatePDF(html_string, dest=response)
+        pisa_status = pisa.CreatePDF(html_string, dest=response, link_callback=self.link_callback)
         if pisa_status.err:
             return HttpResponse(f'We had some errors <pre>{html_string}</pre>')
         return response
@@ -290,8 +314,9 @@ class PDFGenerateDirectly(TemplateView):
                 self.filename = 'paszport.pdf'
 
             if model_name == 'device':
-                device = Device.objects.filter(pk__in=ids)
+                device = Device.objects.filter(pk__in=ids).first()
                 context['device'] = device
+                context['request'] = self.request
                 self.filename = 'urzadzenie.pdf'
 
             if model_name == 'service':
@@ -334,6 +359,29 @@ class PDFGenerate(TemplateView):
         'orientation': 'portrait',
     }
 
+    @staticmethod
+    def link_callback(uri, rel, *args):
+        """
+        Przetwarza ścieżki URI w HTML na ścieżki systemowe,
+        aby xhtml2pdf mógł załadować pliki (czcionki, obrazy, css).
+        """
+        # Ścieżka do plików statycznych (np. czcionki, css, obrazy)
+        if uri.startswith(settings.STATIC_URL):
+            path = finders.find(uri.replace(settings.STATIC_URL, ""))
+            if path:
+                return path
+
+        # Ścieżka do plików mediów (np. uploady)
+        if uri.startswith(settings.MEDIA_URL):
+            path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+            if os.path.isfile(path):
+                return path
+
+        # Jeśli uri jest ścieżką absolutną i plik istnieje
+        if os.path.isfile(uri):
+            return uri
+
+        raise Exception(f"Nie można odnaleźć pliku: {uri}")
     def get_service_description(self, obj):
         """
         Returns service description based on status
@@ -502,7 +550,7 @@ class PDFGenerate(TemplateView):
 
         # create a pdf
         pisa_status = pisa.CreatePDF(
-            html, dest=response)
+            html, dest=response, link_callback=self.link_callback)
 
         # if error then show some funy view
         if pisa_status.err:
@@ -516,6 +564,30 @@ class PDFPreview(TemplateView):
     """Create preview PDF based on given model. PDF created for one object."""
 
     template_name = 'pdf_preview_template.html'
+
+    @staticmethod
+    def link_callback(uri, rel, *args):
+        """
+        Przetwarza ścieżki URI w HTML na ścieżki systemowe,
+        aby xhtml2pdf mógł załadować pliki (czcionki, obrazy, css).
+        """
+        # Ścieżka do plików statycznych (np. czcionki, css, obrazy)
+        if uri.startswith(settings.STATIC_URL):
+            path = finders.find(uri.replace(settings.STATIC_URL, ""))
+            if path:
+                return path
+
+        # Ścieżka do plików mediów (np. uploady)
+        if uri.startswith(settings.MEDIA_URL):
+            path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+            if os.path.isfile(path):
+                return path
+
+        # Jeśli uri jest ścieżką absolutną i plik istnieje
+        if os.path.isfile(uri):
+            return uri
+
+        raise Exception(f"Nie można odnaleźć pliku: {uri}")
 
     def show_send_button(self):
         model = self.request.GET.get("model")
@@ -603,7 +675,7 @@ class PDFPreview(TemplateView):
 
         # create a pdf
         pisa_status = pisa.CreatePDF(
-            html_content, dest=response)
+            html_content, dest=response, link_callback=self.link_callback)
 
         # if error then show some funy view
         if pisa_status.err:

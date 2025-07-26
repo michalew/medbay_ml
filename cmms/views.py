@@ -1,4 +1,16 @@
+import os
+import io
+import csv
+import base64
 import datetime
+import qrcode
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.staticfiles import finders
+from django.utils.formats import date_format
+from xhtml2pdf import pisa
+from zipfile import ZipFile
+from django.urls import reverse
+
 from django.contrib import messages
 from django.db.models import F
 from django.http import JsonResponse
@@ -6,20 +18,27 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView, FormView
+from django.views.generic import TemplateView, FormView, DetailView
 from guardian.decorators import permission_required_or_403
 from django_sendfile import sendfile# Create your views here.
 from rest_framework import viewsets, permissions
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
 from rest_framework.permissions import AllowAny
+from django.utils.timezone import now as timezone_now
+from django.utils.html import escape
+from django_comments.models import Comment
 
-from cmms.models import Device, Genre, Make, Mileage, Ticket, Service, DevicePassport, TicketForm, Document
+
+
+from cmms.models import Device, Genre, Make, Mileage, Ticket, Service, DevicePassport, TicketForm, Document, \
+    DeviceGallery, ServiceForm
+from django.conf import settings
 from crm.models import Invoice, Contractor, Location, CostCentre, UserProfile, Hospital
 from utils.datatables import generate_datatables_records, user_name_annotation
 from utils.inspection_utils import create_planned_ticket
 from utils.view_mixins import AjaxView
-from .forms import InspectionEventForm, InspectionForm, PassportManagerForm
+from .forms import InspectionEventForm, InspectionForm, PassportManagerForm, MileageForm, NewMileageForm
 from .serializers import ContractorSerializer, CostCentreSerializer, LocationSerializer,InvoiceSerializer, UserProfileSerializer, HospitalSerializer, GenreSerializer, MakeSerializer, DeviceSerializer, MileageSerializer, TicketSerializer, ServiceSerializer
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -587,6 +606,20 @@ def mileage_preview(request, mileage_id):
     }
     return render(request, 'mileage-preview.html', context)
 
+
+class MobileDeviceView(LoginRequiredMixin, DetailView):
+    template_name = "mobile/device.html"
+    model = Device
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["documents"] = Document.objects.filter(device=self.object, access=1)
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        if not device_access_check(request.user, kwargs.get("pk", 0)):
+            raise PermissionDenied()
+        return super().dispatch(request, *args, **kwargs)
+
 @login_required
 def ajax_inspections(request):
     devices = get_objects_for_user(
@@ -650,3 +683,262 @@ def devices(request):
     }
 
     return render(request, 'devices.html', context)
+
+def link_callback(uri, rel, *args):
+    # Ignoruj data URI (base64)
+    if uri.startswith('data:'):
+        return None
+
+    if uri.startswith(settings.STATIC_URL):
+        path = finders.find(uri.replace(settings.STATIC_URL, ""))
+        if path:
+            return path
+
+    if uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+        if os.path.isfile(path):
+            return path
+
+    if os.path.isfile(uri):
+        return uri
+
+    raise Exception(f"Nie można odnaleźć pliku: {uri}")
+
+@login_required
+def generate_qrcodes(request):
+    """
+    Returns a ZIP file with PDF and CSV versions of QR Codes using xhtml2pdf
+    """
+    ids = request.GET.get("ids", None)
+    if not ids:
+        raise Http404()
+
+    try:
+        ids = [int(id) for id in ids.split(",")]
+    except ValueError:
+        raise Http404()
+
+    devices = get_objects_for_user(
+        request.user, "cmms.view_device", accept_global_perms=False
+    ).filter(pk__in=ids).order_by("pk")
+
+    if not devices.exists():
+        raise Http404()
+
+    # Prepare CSV buffer
+    csv_buffer = io.StringIO()
+    csv_writer = csv.DictWriter(csv_buffer, fieldnames=["Kod", "Opis", "Skrot"], delimiter="\t")
+    csv_writer.writeheader()
+
+    # Prepare device data with QR code images as base64
+    device_data = []
+    for device in devices:
+        url = "https://" + request.get_host() + reverse("mobile_device", args=[device.pk])
+
+        # Generate QR code image as base64
+        qr_img = qrcode.make(url)
+        qr_io = io.BytesIO()
+        qr_img.save(qr_io, format="PNG")
+        qr_io.seek(0)
+        qr_base64 = base64.b64encode(qr_io.read()).decode('utf-8')
+        qr_data_uri = f"data:image/png;base64,{qr_base64}"
+
+        device_data.append({
+            "url": url,
+            "description": str(device),
+            "short": device.inventory_number if device.inventory_number else str(device.pk),
+            "qr_data_uri": qr_data_uri,
+        })
+
+        # Write CSV row
+        csv_writer.writerow({
+            "Kod": url,
+            "Opis": str(device),
+            "Skrot": device.inventory_number if device.inventory_number else str(device.pk),
+        })
+
+    # Render HTML for PDF
+    html = render_to_string("qrcodes_template.html", {"devices": device_data})
+
+    # Convert HTML to PDF using xhtml2pdf
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(io.StringIO(html), dest=pdf_buffer, link_callback=link_callback)
+    if pisa_status.err:
+        raise Http404("Error generating PDF")
+
+    pdf_buffer.seek(0)
+
+    # Create ZIP file
+    zip_buffer = io.BytesIO()
+    with ZipFile(zip_buffer, "w") as zip_file:
+        zip_file.writestr("kody.pdf", pdf_buffer.read())
+        zip_file.writestr("kody.csv", csv_buffer.getvalue())
+
+        # Fix for Windows compatibility
+        for file in zip_file.filelist:
+            file.create_system = 0
+
+    zip_buffer.seek(0)
+
+    filename = "medCMMS-wydruk_kodow_qr.zip"
+    response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f"attachment; filename={filename}"
+    return response
+
+def device_documents(request):
+    device = get_object_or_404(Device, pk=int(request.GET.get("id", 0)))
+    documents = Document.objects.for_user(request.user).filter(
+        device=device, access=1)
+    return render(request, 'device-documents.html', locals())
+
+
+def device_instructions(request):
+    device = None
+    documents = None
+    try:
+        device_id = request.GET['id']
+        device = Device.objects.get(pk=int(device_id))
+        documents = Document.objects.filter(device=device, sort=0)
+    except (Device.DoesNotExist, KeyError, ValueError):
+        pass
+
+    return render(request, 'device-instructions.html', locals())
+
+def device_gallery(request):
+    device_id = request.GET.get('id')
+    if not device_id:
+        raise Http404("Device ID not provided")
+
+    device = get_object_or_404(Device, pk=int(device_id))
+
+    if not request.user.has_perm('cmms.view_device', device):
+        raise PermissionDenied
+
+    images = DeviceGallery.objects.filter(device=device, is_visible=True)
+    return render(request, 'device_gallery.html', locals())
+
+
+def service_history(request):
+    device_id = request.GET.get('id')
+    if not device_id:
+        raise Http404("Device ID not provided")
+
+    device = get_object_or_404(Device, pk=int(device_id))
+
+    passport_entries = device.devicepassport_set.all().order_by("added_date")
+    return render(request, 'service-history.html', locals())
+
+@login_required
+@csrf_exempt
+def add_comment(request):
+    # W Django 5 i Python 3.12 request.body jest bytes, QueryDict wymaga dekodowania
+    from django.http import QueryDict
+
+    query = QueryDict(request.body.decode('utf-8'))
+
+    comment = query.get('comment', '')
+    object_id = query.get('object_id', '')
+    user_id = query.get('user_id', '')
+    content_type_id = query.get('content_type_id', '')
+
+    current_time = timezone_now()
+
+    _comment = Comment.objects.create(
+        comment=comment,
+        site_id=1,
+        object_pk=object_id,
+        content_type_id=content_type_id,
+        user_id=user_id,
+        submit_date=current_time
+    )
+
+    # Bezpieczne escapowanie tekstu i formatowanie daty
+    formatted_date = date_format(current_time, "d E Y H:i:s")
+    message = f"""<dt id="c{_comment.pk}">{escape(_comment.user)}<br><span>{formatted_date}</span></dt>
+<dd><p>{escape(comment)}</p></dd>"""
+
+    return JsonResponse({'message': message})
+
+@login_required
+def new_mileage(request):
+    mileage = None
+    device = None
+
+    mileage_id = request.GET.get('id')
+    if mileage_id:
+        try:
+            mileage = Mileage.objects.get(pk=int(mileage_id))
+        except (Mileage.DoesNotExist, ValueError):
+            mileage = None
+
+    if mileage:
+        if not (request.user.has_perm('cmms.update_mileage', mileage) or request.user.has_perm('cmms.update_mileage')):
+            raise PermissionDenied
+
+        if not device_access_check(request.user, mileage.device.id):
+            raise PermissionDenied
+
+        mileage.remarks = ""
+        form = MileageForm(instance=mileage, request=request)
+    else:
+        if not request.user.has_perm('cmms.add_mileage'):
+            raise PermissionDenied
+
+        form = NewMileageForm()
+
+        device_id = request.GET.get('device_id')
+        if device_id:
+            try:
+                device = Device.objects.get(pk=int(device_id))
+                form.fields['device'].initial = device_id
+            except (Device.DoesNotExist, ValueError):
+                device = None
+
+    return render(request, 'new-mileage.html', {'form': form, 'mileage': mileage, 'device': device})
+
+
+@login_required
+def new_service(request):
+    devices = get_objects_for_user(
+        request.user, 'cmms.view_device', accept_global_perms=False)
+    tickets = Ticket.objects.filter(device__in=devices)
+    services = Service.objects.filter(ticket__in=tickets)
+
+    service = None
+    form = None
+
+    service_id = request.GET.get('id')
+    if service_id:
+        try:
+            service = services.get(pk=int(service_id))
+            form = ServiceForm(instance=service)
+            tickets = service.ticket.all()
+        except (Service.DoesNotExist, ValueError):
+            service = None
+            form = ServiceForm()
+    else:
+        form = ServiceForm()
+        ticket_ids = request.GET.get('tickets')
+        if ticket_ids:
+            try:
+                tickets = Ticket.objects.filter(
+                    id__in=[int(tid) for tid in ticket_ids.split(',') if tid.strip()]
+                )
+            except ValueError:
+                pass
+
+    # check if user has permissions for viewing this form
+    if not service:
+        if not request.user.has_perm('cmms.add_service'):
+            raise PermissionDenied
+
+    return render(request, 'new-service.html', locals())
+
+@login_required
+def ajax_mileage(request, did):
+    queryset = Mileage.objects.filter(device__id=did)
+
+    columnIndexNameMap = {'lp': 'id'}
+
+    return generate_datatables_records(
+        request, queryset, columnIndexNameMap, 'datatables/json_mileage.txt'  )

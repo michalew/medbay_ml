@@ -3,12 +3,17 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <style>
+            @font-face {
+    font-family: 'DejaVu';
+    src: url('/site_media/fonts/DejaVuSans.ttf');
+  }
             body, html {
+                font-family:'DejaVu', sans-serif;
                 margin: 0;
                 padding: 0;
             }
             div, span, p, td, h1, tr {
-                font-family: "DejaVu Sans", "Calibri", sans-serif;
+                font-family: "DejaVu", sans-serif;
             }
             .qr-code-container {
                 display: table;
@@ -41,6 +46,7 @@
     <body>
         <div>
             {% for code in codes %}
+                
             <div class="qr-code-container">  
                 <img src="data:image/png;base64, {{ code.1 }}">
                 <div>

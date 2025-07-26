@@ -88,7 +88,8 @@ def get_field_properties(obj: object, key: str, value: object = None) -> dict[st
 
     try:
         if value and field and hasattr(field, "related_model"):
-            if field.related_model.objects.filter(pk=value).exists():
+            lookup_value = value.pk if hasattr(value, "pk") else value
+            if field.related_model.objects.filter(pk=lookup_value).exists():
                 is_m2m_field = True
     except AttributeError:
         pass
