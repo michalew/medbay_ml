@@ -59,26 +59,18 @@ function getCookie(name) {
 const csrftoken = getCookie('csrftoken');
 
 document.getElementById('add-ticket').addEventListener('submit', function(event) {
-    event.preventDefault(); // zatrzymaj domyślne wysłanie formularza
+    event.preventDefault();
 
     const form = event.target;
     const formData = new FormData(form);
 
-    // Zamiana FormData na JSON (jeśli API oczekuje JSON)
-    const data = {};
-    formData.forEach((value, key) => {
-        // Jeśli masz pola wielokrotnego wyboru, dostosuj tę logikę
-        data[key] = value;
-    });
-
     fetch(form.action || window.location.href, {
         method: 'POST',
+        body: formData,
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify(data),
-        credentials: 'include' // wysyła ciasteczka, ważne dla sesji i CSRF
+        credentials: 'include'
     })
     .then(response => {
         if (!response.ok) {
@@ -88,7 +80,6 @@ document.getElementById('add-ticket').addEventListener('submit', function(event)
     })
     .then(data => {
         console.log('Sukces:', data);
-        // tutaj możesz przekierować lub wyświetlić komunikat
     })
     .catch(error => {
         console.error('Błąd:', error);

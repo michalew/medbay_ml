@@ -26,6 +26,7 @@ from django.conf.urls.static import static
 
 
 import cmms
+import dane
 import utils
 from cmms import charts
 from cmms.views import (
@@ -44,6 +45,8 @@ from cmms.views import (
     MileageViewSet, ajax_tickets, ajax_services, ajax_devices, InspectionView, InspectionAddView,
     CreateInspectionEvents, generate_qrcodes, MobileDeviceView
 )
+from costs.views import ResetCostBreakdown
+from dane import admin_views
 from utils.views import PDFPreview, PDFGenerate, PDFGenerateDirectly, GenerateXLSPreview, GenerateXLS
 from utils.widget_filter_objects import ajax_filter_services, ajax_filter_tickets, ajax_get_selected_devices, \
     ajax_get_selected_services, ajax_get_selected_tickets, ajax_filter_devices
@@ -133,6 +136,9 @@ urlpatterns = [
 # comments
     path('add-comment', cmms.views.add_comment, name='add_comment'),
     path('comments/', include('django_comments.urls')),
+    re_path(r'^reset-costbreakdown/$', login_required(ResetCostBreakdown.as_view()), name='pdf-preview'),
+    path('get_contractor/', admin_views.get_contractor_change_form, name='get_contractor_change_form'),
+    path('get_system_user/', admin_views.get_system_user, name='get_system_user'),
 
 
 ]

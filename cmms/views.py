@@ -7,6 +7,8 @@ import qrcode
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.staticfiles import finders
 from django.utils.formats import date_format
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from xhtml2pdf import pisa
 from zipfile import ZipFile
 from django.urls import reverse
@@ -17,14 +19,14 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.generic import TemplateView, FormView, DetailView
 from guardian.decorators import permission_required_or_403
 from django_sendfile import sendfile# Create your views here.
 from rest_framework import viewsets, permissions
 from django.contrib.auth import get_user_model
-from guardian.shortcuts import get_objects_for_user
-from rest_framework.permissions import AllowAny
+#from guardian.shortcuts import get_objects_for_user
+from rest_framework.permissions import DjangoModelPermissions
 from django.utils.timezone import now as timezone_now
 from django.utils.html import escape
 from django_comments.models import Comment
@@ -189,27 +191,24 @@ class MileageViewSet(viewsets.ModelViewSet):
         return Mileage.objects.filter(device__in=devices)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return  # nic nie robi, czyli CSRF wyłączone
+
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [DjangoModelPermissions]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]  # obsługa JSON i formularzy
 
-
-    def dispatch(self, request, *args, **kwargs):
-        print(f"Metoda: {request.method}, Body: {request.body}")
-        return super().dispatch(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        print("Dane POST:", request.data)  # wypisze dane w konsoli serwera
-        return super().create(request, *args, **kwargs)
 
 
     def get_queryset(self):
         user = self.request.user
-        devices = get_objects_for_user(user, "cmms.view_device", accept_global_perms=False)
+        devices = get_objects_for_user(user, "cmms.view_device", accept_global_perms=True)
         return Ticket.objects.filter(device__in=devices).distinct()
+
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -298,6 +297,26 @@ class InspectionView(TemplateView):
 class InspectionAddView(AjaxView, FormView):
     template_name = "inspections/new_inspection.html"
     form_class = InspectionForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['duration_time'] = 1  # domyślna wartość pola
+        initial['count_planned_events'] = 1  # domyślna wartość pola
+        initial['cycle_value'] = 1  # domyślna wartość pola
+        initial['recurring_time'] = 1  # domyślna wartość pola
+        initial['cycle_date_start'] = datetime.date.today()  # domyślna wartość pola
+
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['duration_time'].widget.attrs['min'] = 1
+        form.fields['count_planned_events'].widget.attrs['min'] = 1
+        form.fields['cycle_value'].widget.attrs['min'] = 1
+        form.fields['recurring_time'].widget.attrs['min'] = 1
+
+        return form
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -467,7 +486,6 @@ def passport_manager(request):
     }
 
     return render(request, "passport-manager.html", context)
-
 
 def new_ticket(request):
     ticket = None
