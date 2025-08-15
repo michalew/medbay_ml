@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django import forms
 from .models import Hospital
+from .models import UserProfile
+
 
 
 class HospitalAdminForm(forms.ModelForm):
@@ -25,3 +27,5 @@ class HospitalAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Hospital, HospitalAdmin)
+
+admin.site.register(UserProfile)
